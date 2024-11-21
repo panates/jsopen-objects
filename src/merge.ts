@@ -80,30 +80,26 @@ export function merge<A, B>(
 const functionCache = new Map<string, Function>();
 
 export function getMergeFunction(options?: merge.Options): Function {
-  const f = option =>
-    option == null
-      ? 'n'
-      : typeof option === 'function'
-        ? 'f'
-        : option
-          ? '1'
-          : '0';
-  const cacheKey =
-    f(options?.deep) +
-    ',' +
-    f(options?.moveArrays) +
-    ',' +
-    f(options?.keepExisting) +
-    ',' +
-    f(options?.copyDescriptors) +
-    ',' +
-    f(options?.ignore) +
-    ',' +
-    f(options?.ignoreUndefined) +
-    ',' +
-    f(options?.ignoreNulls) +
-    ',' +
-    f(options?.filter);
+  const cacheKey = [
+    options?.deep,
+    options?.moveArrays,
+    options?.keepExisting,
+    options?.copyDescriptors,
+    options?.ignore,
+    options?.ignoreUndefined,
+    options?.ignoreNulls,
+    options?.filter,
+  ]
+    .map(option =>
+      option == null
+        ? 'n'
+        : typeof option === 'function'
+          ? 'f'
+          : option
+            ? '1'
+            : '0',
+    )
+    .join();
   let fn = functionCache.get(cacheKey);
   if (!fn) {
     fn = buildMerge(options);
