@@ -1,6 +1,5 @@
 export function isBuiltIn(v: any): boolean {
   return (
-    Array.isArray(v) ||
     (typeof v === 'object' &&
       (v instanceof Date ||
         v instanceof RegExp ||
@@ -21,6 +20,7 @@ export function isBuiltIn(v: any): boolean {
         v instanceof Int8Array ||
         v instanceof Int16Array ||
         v instanceof Int32Array ||
-        Buffer.isBuffer(v)))
+        Buffer.isBuffer(v))) ||
+    Array.isArray(v)
   );
 }

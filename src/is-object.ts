@@ -10,6 +10,7 @@ export function isPlainObject(obj: any): boolean {
     Object.prototype.toString.call(obj) === '[object Object]'
   ) {
     const proto = Object.getPrototypeOf(obj);
+    /* istanbul ignore next */
     if (!proto) return true;
     const ctor =
       Object.prototype.hasOwnProperty.call(proto, 'constructor') &&
