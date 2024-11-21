@@ -8,8 +8,8 @@ describe('omitNullish', () => {
       c: { foo: { bar: { baz: 1, c: null, d: undefined } } },
       d: undefined,
     };
-    omitNullish(a);
-    expect(a).toStrictEqual({
+    const x = omitNullish(a);
+    expect(x).toStrictEqual({
       a: '1',
       c: { foo: { bar: { baz: 1, c: null, d: undefined } } },
     });
@@ -22,8 +22,8 @@ describe('omitNullish', () => {
       c: { foo: { bar: { baz: 1, c: null, d: undefined } } },
       d: undefined,
     };
-    omitNullish(a, true);
-    expect(a).toStrictEqual({ a: '1', c: { foo: { bar: { baz: 1 } } } });
+    const x = omitNullish(a, true);
+    expect(x).toStrictEqual({ a: '1', c: { foo: { bar: { baz: 1 } } } });
   });
 
   it('should deep omit nullish values in array fields', () => {
@@ -31,8 +31,8 @@ describe('omitNullish', () => {
       a: '1',
       b: [{ a: 1, b: null, c: undefined }],
     };
-    omitNullish(a, true);
-    expect(a).toStrictEqual({
+    const x = omitNullish(a, true);
+    expect(x).toStrictEqual({
       a: '1',
       b: [{ a: 1 }],
     });

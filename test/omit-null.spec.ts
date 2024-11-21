@@ -7,8 +7,8 @@ describe('omitNull', () => {
       b: null,
       c: { foo: { bar: { baz: 1, c: null } } },
     };
-    omitNull(a);
-    expect(a).toStrictEqual({
+    const x = omitNull(a);
+    expect(x).toStrictEqual({
       a: '1',
       c: { foo: { bar: { baz: 1, c: null } } },
     });
@@ -20,8 +20,8 @@ describe('omitNull', () => {
       b: null,
       c: { foo: { bar: { baz: 1, c: null } } },
     };
-    omitNull(a, true);
-    expect(a).toStrictEqual({ a: '1', c: { foo: { bar: { baz: 1 } } } });
+    const x = omitNull(a, true);
+    expect(x).toStrictEqual({ a: '1', c: { foo: { bar: { baz: 1 } } } });
   });
 
   it('should deep omit null values in array fields', () => {
@@ -29,8 +29,8 @@ describe('omitNull', () => {
       a: '1',
       b: [{ a: 1, b: null }],
     };
-    omitNull(a, true);
-    expect(a).toStrictEqual({
+    const x = omitNull(a, true);
+    expect(x).toStrictEqual({
       a: '1',
       b: [{ a: 1 }],
     });

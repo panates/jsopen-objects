@@ -7,8 +7,8 @@ describe('omitUndefined', () => {
       b: undefined,
       c: { foo: { bar: { baz: 1, c: undefined } } },
     };
-    omitUndefined(a);
-    expect(a).toStrictEqual({
+    const x = omitUndefined(a);
+    expect(x).toStrictEqual({
       a: '1',
       c: { foo: { bar: { baz: 1, c: undefined } } },
     });
@@ -20,8 +20,8 @@ describe('omitUndefined', () => {
       b: undefined,
       c: { foo: { bar: { baz: 1, c: undefined } } },
     };
-    omitUndefined(a, true);
-    expect(a).toStrictEqual({ a: '1', c: { foo: { bar: { baz: 1 } } } });
+    const x = omitUndefined(a, true);
+    expect(x).toStrictEqual({ a: '1', c: { foo: { bar: { baz: 1 } } } });
   });
 
   it('should deep omit undefined values in array fields', () => {
@@ -29,8 +29,8 @@ describe('omitUndefined', () => {
       a: '1',
       b: [{ a: 1, b: undefined }],
     };
-    omitUndefined(a, true);
-    expect(a).toStrictEqual({
+    const x = omitUndefined(a, true);
+    expect(x).toStrictEqual({
       a: '1',
       b: [{ a: 1 }],
     });

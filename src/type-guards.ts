@@ -1,3 +1,5 @@
+import { Type } from 'ts-gems';
+
 export function isBuiltIn(v: any): boolean {
   return (
     (typeof v === 'object' &&
@@ -23,4 +25,24 @@ export function isBuiltIn(v: any): boolean {
         Buffer.isBuffer(v))) ||
     Array.isArray(v)
   );
+}
+
+export function isConstructor(fn: any): fn is Type {
+  return (
+    typeof fn === 'function' &&
+    fn.prototype &&
+    fn.prototype.constructor === fn &&
+    fn.prototype.constructor.name !== 'Function' &&
+    fn.prototype.constructor.name !== 'embedded'
+  );
+}
+
+export function isIterable<T = unknown>(x: any): x is Iterable<T> {
+  return Symbol.iterator in x;
+}
+
+export function isAsyncIterable<T = unknown>(
+  x: any,
+): x is AsyncIterableIterator<T> {
+  return Symbol.asyncIterator in x;
 }
