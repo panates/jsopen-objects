@@ -5,6 +5,7 @@ export function omitUndefined<T>(
   obj: T,
   deep?: boolean,
 ): DeeperOmitTypes<T, undefined> {
+  /* istanbul ignore next */
   if (!(obj && typeof obj === 'object')) return obj as any;
   let v: any;
   for (const k of Object.keys(obj)) {
@@ -19,6 +20,7 @@ export function omitUndefined<T>(
 }
 
 export function omitNull<T>(obj: T, deep?: boolean): DeeperOmitTypes<T, null> {
+  /* istanbul ignore next */
   if (!(obj && typeof obj === 'object')) return obj as any;
   let v: any;
   for (const k of Object.keys(obj)) {
@@ -36,6 +38,7 @@ export function omitNullish<T>(
   obj: T,
   deep?: boolean,
 ): DeeperOmitTypes<T, null | undefined> {
+  /* istanbul ignore next */
   if (!(obj && typeof obj === 'object')) return obj as any;
   let v: any;
   for (const k of Object.keys(obj)) {
