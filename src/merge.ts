@@ -136,7 +136,10 @@ function buildMerge(options?: merge.Options): Function {
 `;
 
   if (typeof options?.deep === 'function') {
-    script += '  const deepCallback = options.deep;\n';
+    script += `
+  const deepCallback = options.deep;
+  let subPath;
+`;
   }
 
   if (typeof options?.ignore === 'function') {
@@ -247,36 +250,37 @@ function buildMerge(options?: merge.Options): Function {
 
   /** ************* deep *****************/
   if (options?.deep) {
+    script += `      subPath = curPath + (curPath ? '.' : '') + key;\n`;
     /** ************* keepArrays *****************/
     if (!options?.keepArrays) {
       script += `    if (Array.isArray(srcVal)) {\n`;
       if (typeof options?.keepArrays === 'function') {
         script += `
-        if (!keepArraysCallback(key, curPath, target, source)) {
-          descriptor.value = arrayClone(srcVal, _merge, curPath);
+        if (!keepArraysCallback(key, subPath, target, source)) {
+          descriptor.value = arrayClone(srcVal, _merge, subPath);
           Object.defineProperty(target, key, descriptor);
           continue;        
-        }`;
+        }\n`;
       } else {
         script += `
-      descriptor.value = arrayClone(srcVal, _merge, curPath);
+      descriptor.value = arrayClone(srcVal, _merge, subPath);
       Object.defineProperty(target, key, descriptor);
       continue;
-    }`;
+    }\n`;
       }
     }
 
     /** ************* isPlainObject *****************/
     if (typeof options?.deep === 'function') {
-      script += `    if (isPlainObject(srcVal) && deepCallback(key, curPath, target, source)) {\n`;
-    } else script += `    if (isPlainObject(srcVal)) {\n`;
+      script += `    if (isPlainObject(srcVal) && deepCallback(key, subPath, target, source)) {`;
+    } else script += `    if (isPlainObject(srcVal)) {`;
     script += `
       trgVal = target[key];
       if (!isObject(trgVal)) {
         descriptor.value = trgVal = {};
         Object.defineProperty(target, key, descriptor);
       }
-      _merge(trgVal, srcVal, '', options);
+      _merge(trgVal, srcVal, subPath, options);
       continue;
     }\n`;
   }
