@@ -45,7 +45,7 @@ describe('merge', () => {
     expect(o.foo).toStrictEqual(b.foo);
   });
 
-  it('should copy descriptors', () => {
+  it('should copy descriptors if copyDescriptors set true', () => {
     const a = {};
     Object.defineProperty(a, 'foo', {
       configurable: true,
@@ -53,7 +53,7 @@ describe('merge', () => {
       writable: false,
       value: 1,
     });
-    const o = merge({}, a, { keepDescriptors: true });
+    const o = merge({}, a, { copyDescriptors: true });
     expect(Object.getOwnPropertyDescriptor(o, 'foo')).toStrictEqual({
       configurable: true,
       enumerable: false,
@@ -62,7 +62,24 @@ describe('merge', () => {
     });
   });
 
-  it('should copy getter values if keepDescriptors is not set', () => {
+  it('should copy descriptors if copyDescriptors callback return true', () => {
+    const a = {};
+    Object.defineProperty(a, 'foo', {
+      configurable: true,
+      enumerable: false,
+      writable: false,
+      value: 1,
+    });
+    const o = merge({}, a, { copyDescriptors: () => true });
+    expect(Object.getOwnPropertyDescriptor(o, 'foo')).toStrictEqual({
+      configurable: true,
+      enumerable: false,
+      writable: false,
+      value: 1,
+    });
+  });
+
+  it('should copy getter values if copyDescriptors is not set', () => {
     const a = {};
     Object.defineProperty(a, 'foo', {
       configurable: true,
@@ -72,7 +89,7 @@ describe('merge', () => {
       },
     });
 
-    const o = merge({}, a, { keepDescriptors: false });
+    const o = merge({}, a, { copyDescriptors: false });
     expect(Object.getOwnPropertyDescriptor(o, 'foo')).toStrictEqual({
       configurable: true,
       enumerable: true,
@@ -91,7 +108,7 @@ describe('merge', () => {
         this.bar = v;
       },
     };
-    const o = merge({}, a, { keepDescriptors: true });
+    const o = merge({}, a, { copyDescriptors: true });
     expect(a.bar).toEqual(0);
     expect(o.bar).toEqual(0);
     expect(a.foo).toEqual(1);

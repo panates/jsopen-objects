@@ -25,7 +25,7 @@ export namespace merge {
      * Copy property descriptors
      * @default false
      */
-    keepDescriptors?: boolean | NodeCallback;
+    copyDescriptors?: boolean | NodeCallback;
 
     /**
      * Do not copy source field if callback returns true
@@ -95,7 +95,7 @@ export function getMergeFunction(options?: merge.Options): Function {
     ',' +
     f(options?.keepExisting) +
     ',' +
-    f(options?.keepDescriptors) +
+    f(options?.copyDescriptors) +
     ',' +
     f(options?.ignore) +
     ',' +
@@ -132,7 +132,6 @@ function buildMerge(options?: merge.Options): Function {
   let descriptor;
   let srcVal;
   let trgVal;
-  let keepDescriptors;
 `;
 
   if (typeof options?.deep === 'function') {
@@ -150,8 +149,11 @@ function buildMerge(options?: merge.Options): Function {
     script += '  const filterCallback = options.filter;\n';
   }
 
-  if (typeof options?.keepDescriptors === 'function') {
-    script += '  const keepDescriptorsCallback = options.keepDescriptors;\n';
+  if (typeof options?.copyDescriptors === 'function') {
+    script += `
+  const copyDescriptorsCallback = options.copyDescriptors;
+  let copyDescriptors;
+`;
   }
 
   if (typeof options?.keepArrays === 'function') {
@@ -190,8 +192,8 @@ function buildMerge(options?: merge.Options): Function {
     descriptor = { ...Object.getOwnPropertyDescriptor(source, key) };    
 `;
 
-  /** ************* keepDescriptors *****************/
-  if (options?.keepDescriptors === true) {
+  /** ************* copyDescriptors *****************/
+  if (options?.copyDescriptors === true) {
     script += `
     if ((descriptor.get || descriptor.set)) {
       Object.defineProperty(target, key, descriptor);
@@ -199,13 +201,16 @@ function buildMerge(options?: merge.Options): Function {
     }
     srcVal = source[key];
 `;
-  } else if (typeof options?.keepDescriptors === 'function') {
+  } else if (typeof options?.copyDescriptors === 'function') {
     script += `
-    if ((descriptor.get || descriptor.set)) {
-      if (keepDescriptorsCallback(key, curPath, target, source)) {
+    copyDescriptors = copyDescriptorsCallback(key, curPath, target, source)
+    if (copyDescriptors) {
+      if ((descriptor.get || descriptor.set)) {
         Object.defineProperty(target, key, descriptor);
         continue;
-      };
+      }
+      srcVal = source[key];
+    } else {
       srcVal = source[key];
       descriptor.value = srcVal;
       delete descriptor.get;
