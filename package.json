@@ -1,5 +1,5 @@
 {
-  "name": "@jsutil/objects",
+  "name": "@jsopen/objects",
   "description": "Helper utilities for working with JavaScript objects and arrays",
   "version": "1.0.0",
   "author": "Panates",
@@ -70,7 +70,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/panates/ts-objects.git"
+    "url": "https://github.com/panates/jsopen-objects.git"
   },
   "engines": {
     "node": ">= 16.0"
@@ -85,8 +85,13 @@
   ],
   "keywords": [
     "object",
+    "util",
+    "utils",
     "merge",
     "clone",
-    "deep"
+    "deep",
+    "omit",
+    "is-plain",
+    "object-utils"
   ]
 }

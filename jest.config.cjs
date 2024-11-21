@@ -17,7 +17,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '(\\..+)\\.js': '$1',
-    '@jsutil/objects': '<rootDir>/src',
+    '@jsopen/objects': '<rootDir>/src',
   },
   modulePathIgnorePatterns: ['<rootDir>/build'],
 };

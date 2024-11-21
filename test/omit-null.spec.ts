@@ -1,4 +1,4 @@
-import { omitNull } from '@jsutil/objects';
+import { omitNull } from '@jsopen/objects';
 
 describe('omitNull', () => {
   it('should omit null fields', () => {

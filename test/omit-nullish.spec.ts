@@ -1,4 +1,4 @@
-import { omitNullish } from '@jsutil/objects';
+import { omitNullish } from '@jsopen/objects';
 
 describe('omitNullish', () => {
   it('should omit nullish fields', () => {
