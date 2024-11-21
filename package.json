@@ -26,6 +26,7 @@
     "typescript": "^5.6.3"
   },
   "scripts": {
+    "compile": "tsc --noEmit",
     "clean": "npm run clean:src && npm run clean:dist",
     "clean:dist": "rimraf build coverage",
     "clean:src": "ts-cleanup -s src --all | ts-cleanup -s test",
