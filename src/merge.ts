@@ -3,9 +3,9 @@ import { isObject, isPlainObject } from './is-object.js';
 export namespace merge {
   export type NodeCallback = (
     key: string | symbol,
-    path: string,
-    target: any,
     source: any,
+    target: any,
+    path: string,
   ) => boolean;
 
   export interface Options {
@@ -169,7 +169,7 @@ for (i = 0; i < len; i++) {
   /** ************* filter *****************/
   if (options?.filter) {
     scriptL1For.push(`
-if (!filterCallback(key, curPath, target, source)) {
+if (!filterCallback(key, source, target, curPath)) {
   delete target[key];
   continue;
 }`);
@@ -180,7 +180,7 @@ if (!filterCallback(key, curPath, target, source)) {
     scriptL1For.push(`
 if (
       Object.prototype.hasOwnProperty.call(target, key) && 
-      ignoreCallback(key, curPath, target, source)
+      ignoreCallback(key, source, target, curPath)
    ) continue;
 `);
   }
@@ -195,7 +195,7 @@ if (
 
     if (typeof options?.copyDescriptors === 'function') {
       scriptL1For.push(
-        'if (copyDescriptorsCallback(key, curPath, target, source)) {',
+        'if (copyDescriptorsCallback(key, source, target, curPath)) {',
       );
       scriptL2Descriptors = [];
       scriptL1For.push(scriptL2Descriptors);
