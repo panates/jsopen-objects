@@ -336,10 +336,10 @@ describe('merge', () => {
     expect(o.foo).not.toEqual(b.foo);
   });
 
-  it('should not clone array values if keepArrays set true', () => {
+  it('should not clone array values if moveArrays set true', () => {
     const a: any = { foo: [1, 2] };
     const b: any = { foo: [2, 3, { a: 1 }] };
-    const o: any = merge(a, b, { deep: true, keepArrays: true });
+    const o: any = merge(a, b, { deep: true, moveArrays: true });
     expect(o).toStrictEqual(b);
     expect(o.foo).toStrictEqual(b.foo);
     b.foo[2].a = 2;
@@ -348,12 +348,12 @@ describe('merge', () => {
     expect(o.foo).toEqual(b.foo);
   });
 
-  it('should not clone array values if keepArrays set a callback', () => {
+  it('should not clone array values if moveArrays callback return true', () => {
     const a: any = { foo: [1, 2] };
     const b: any = { foo: [2, 3, { a: 1 }] };
     const o: any = merge(a, b, {
       deep: true,
-      keepArrays: k => k === 'foo',
+      moveArrays: k => k === 'foo',
     });
     expect(o).toStrictEqual(b);
     expect(o.foo).toStrictEqual(b.foo);
