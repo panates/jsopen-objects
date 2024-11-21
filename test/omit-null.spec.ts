@@ -1,4 +1,4 @@
-import { omitNull } from '@ts/objects';
+import { omitNull } from '@jsutil/objects';
 
 describe('omitNull', () => {
   it('should omit null fields', () => {

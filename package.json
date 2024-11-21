@@ -1,5 +1,5 @@
 {
-  "name": "@ts/objects",
+  "name": "@jsutil/objects",
   "description": "Helper utilities for working with JavaScript objects and arrays",
   "version": "1.0.0",
   "author": "Panates",

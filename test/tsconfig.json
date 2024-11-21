@@ -5,7 +5,7 @@
     "types": ["node", "jest"],
     "baseUrl": "./",
     "paths": {
-      "@ts/objects": ["../src"]
+      "@jsutil/objects": ["../src"]
     }
   }
 }

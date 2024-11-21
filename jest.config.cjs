@@ -17,7 +17,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '(\\..+)\\.js': '$1',
-    '@ts/objects': '<rootDir>/src',
+    '@jsutil/objects': '<rootDir>/src',
   },
   modulePathIgnorePatterns: ['<rootDir>/build'],
 };

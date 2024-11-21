@@ -1,4 +1,4 @@
-import { isBuiltIn } from '@ts/objects';
+import { isBuiltIn } from '@jsutil/objects';
 
 describe('isBuiltIn', () => {
   it('Array', () => {

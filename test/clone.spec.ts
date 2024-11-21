@@ -1,4 +1,4 @@
-import { clone } from '@ts/objects';
+import { clone } from '@jsutil/objects';
 
 describe('clone', () => {
   it('should deep clone', () => {

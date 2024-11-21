@@ -1,4 +1,4 @@
-import { merge } from '@ts/objects';
+import { merge } from '@jsutil/objects';
 
 describe('merge', () => {
   it('should throw if target is not an object', () => {

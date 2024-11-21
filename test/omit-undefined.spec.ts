@@ -1,4 +1,4 @@
-import { omitUndefined } from '@ts/objects';
+import { omitUndefined } from '@jsutil/objects';
 
 describe('omitUndefined', () => {
   it('should omit undefined fields', () => {
