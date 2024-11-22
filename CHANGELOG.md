@@ -1,6 +1,6 @@
-# v1.2.0
-[2024-11-21]
+# v1.3.0
+[2024-11-22]
 
 ### Changes
 
-* feat: Added isConstructor, isIterable and isAsyncIterable type guards ([`b2251c1`](https://github.com/panates/jsopen-objects/commit/b2251c1a780a632d7eaf8bd8e7f3205f73c43c52))
+* feat: Added ability to merge non plain objects ([`3d32279`](https://github.com/panates/jsopen-objects/commit/3d3227998dbd8b345c24f4d7a0d9ab9bc3cd7b52))
