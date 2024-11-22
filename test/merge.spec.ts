@@ -291,7 +291,7 @@ describe('merge', () => {
     const a: any = { a: 1, b: '2', c: { fop: 1 }, d: { a: 1 } };
     const b: any = { a: '1', c: { foo: { bar: { baz: 1 } } }, d: { b: 2 } };
     const o: any = merge(a, b, {
-      deep: (k, path) => path.startsWith('c'),
+      deep: (_, path) => path.startsWith('c'),
     });
     b.c.foo.bar = 2;
     expect(o).toStrictEqual({

@@ -1,4 +1,5 @@
 import { isObject, isPlainObject } from './is-object.js';
+import { isBuiltIn } from './type-guards.js';
 
 export namespace merge {
   export type NodeCallback = (
@@ -70,8 +71,9 @@ export function merge<A, B>(
     '',
     options,
     fn,
-    isPlainObject,
+    isBuiltIn,
     isObject,
+    isPlainObject,
     arrayClone,
   );
 }
@@ -115,14 +117,15 @@ function buildMerge(options?: merge.Options): Function {
     'curPath',
     'options',
     'mergeFunction',
-    'isPlainObject',
+    'isBuiltIn',
     'isObject',
+    'isPlainObject',
     'arrayClone',
   ];
   const scriptL0: any[] = [
     `
 const _merge = (_trgVal, _srcVal, _curPath) => 
-    mergeFunction(_trgVal, _srcVal, _curPath, options, mergeFunction, isPlainObject, isObject, arrayClone);
+    mergeFunction(_trgVal, _srcVal, _curPath, options, mergeFunction, isBuiltIn, isObject, isPlainObject, arrayClone);
 const keys = Object.getOwnPropertyNames(source);
 keys.push(...Object.getOwnPropertySymbols(source));
 let key;
@@ -132,7 +135,7 @@ let trgVal;
 `,
   ];
   if (options?.deep) {
-    scriptL0.push(`let subPath;`, `let _isPlain;`, `let _isArray;`);
+    scriptL0.push(`let subPath;`, `let _isArray;`);
     if (typeof options?.deep === 'function') {
       scriptL0.push(`const deepCallback = options.deep;`);
     }
@@ -155,6 +158,7 @@ let trgVal;
   }
 
   scriptL0.push(`
+if (isPlainObject(target)) Object.setPrototypeOf(target, Object.getPrototypeOf(source));  
 let i = 0;
 const len = keys.length;
 for (i = 0; i < len; i++) {
@@ -214,7 +218,7 @@ if (
   } else {
     scriptL1For.push(
       `descriptor = {enumerable: true, configurable: true, writable: true}`,
-      `srcVal =  source[key];`,
+      `srcVal = source[key];`,
     );
   }
 
@@ -233,12 +237,21 @@ if (
     scriptL1For.push(`if (srcVal === null) continue;`);
   }
 
+  const deepArray =
+    !options?.moveArrays || typeof options?.moveArrays === 'function';
+
   /** ************* deep *****************/
   if (options?.deep) {
-    scriptL1For.push(`
-_isPlain = isPlainObject(srcVal);
+    if (deepArray) {
+      scriptL1For.push(`
 _isArray = Array.isArray(srcVal);
-if (_isPlain || _isArray) {`);
+if (_isArray || (typeof srcVal === 'object' && !isBuiltIn(srcVal))) {`);
+    } else {
+      scriptL1For.push(`
+if (typeof srcVal === 'object' && !isBuiltIn(srcVal)) {
+  subPath = curPath + (curPath ? '.' : '') + key;`);
+    }
+    scriptL1For.push(`subPath = curPath + (curPath ? '.' : '') + key;`);
     const scriptL2Deep: any[] = [];
     scriptL1For.push(scriptL2Deep);
     scriptL1For.push('}');
@@ -247,26 +260,13 @@ if (_isPlain || _isArray) {`);
 
     if (typeof options?.deep === 'function') {
       scriptL2Deep.push(`
-subPath = curPath + (curPath ? '.' : '') + key;
 if (deepCallback(key, subPath, target, source)) {`);
       scriptL3Deep = [];
       scriptL2Deep.push(scriptL3Deep);
       scriptL2Deep.push('}');
     }
 
-    /** ************* _isPlain *****************/
-    scriptL3Deep.push(`
-if (_isPlain) {
-  trgVal = target[key];
-  if (!isObject(trgVal)) {
-    descriptor.value = trgVal = {};
-    Object.defineProperty(target, key, descriptor);
-  }
-  _merge(trgVal, srcVal, subPath, options);
-  continue;
-}`);
-
-    /** ************* moveArrays *****************/
+    /** ************* Array *****************/
     if (!options?.moveArrays || typeof options?.moveArrays === 'function') {
       scriptL3Deep.push(`if (_isArray) {`);
       const scriptL4IsArray: any[] = [];
@@ -276,9 +276,12 @@ if (_isPlain) {
       let scriptL5CloneArrays = scriptL4IsArray;
 
       if (typeof options?.moveArrays === 'function') {
-        scriptL4IsArray.push(
-          `if (!moveArraysCallback(key, subPath, target, source)) {`,
-        );
+        scriptL4IsArray.push(`
+if (moveArraysCallback(key, subPath, target, source)) {
+  descriptor.value = srcVal;
+  Object.defineProperty(target, key, descriptor);
+  continue;
+} else {`);
         scriptL5CloneArrays = [];
         scriptL4IsArray.push(scriptL5CloneArrays);
         scriptL4IsArray.push('}');
@@ -289,6 +292,16 @@ Object.defineProperty(target, key, descriptor);
 continue;
 `);
     }
+
+    /** ************* object *****************/
+    scriptL3Deep.push(`
+trgVal = target[key];
+if (!isObject(trgVal)) {
+  descriptor.value = trgVal = {};  
+  Object.defineProperty(target, key, descriptor);
+}
+_merge(trgVal, srcVal, subPath, options);
+continue;`);
   }
 
   /** ************* finalize *****************/
@@ -305,7 +318,7 @@ Object.defineProperty(target, key, descriptor);`);
 function arrayClone(arr: any[], _merge: Function, curPath: string): any[] {
   return arr.map((x: any) => {
     if (Array.isArray(x)) return arrayClone(x, _merge, curPath);
-    if (isPlainObject(x)) return _merge({}, x, curPath);
+    if (typeof x === 'object' && !isBuiltIn(x)) return _merge({}, x, curPath);
     return x;
   });
 }
