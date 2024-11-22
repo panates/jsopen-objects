@@ -10,7 +10,7 @@ export namespace merge {
   ) => boolean;
 
   export interface Options {
-    deep?: boolean | NodeCallback;
+    deep?: boolean | 'full' | NodeCallback;
 
     /**
      */
@@ -97,9 +97,11 @@ export function getMergeFunction(options?: merge.Options): Function {
         ? 'n'
         : typeof option === 'function'
           ? 'f'
-          : option
-            ? '1'
-            : '0',
+          : typeof option === 'string'
+            ? option
+            : option
+              ? '1'
+              : '0',
     )
     .join();
   let fn = functionCache.get(cacheKey);
@@ -242,13 +244,18 @@ if (
 
   /** ************* deep *****************/
   if (options?.deep) {
+    const deepCondition =
+      options.deep === 'full'
+        ? `typeof srcVal === 'object' && !isBuiltIn(srcVal)`
+        : `isPlainObject(srcVal)`;
+
     if (deepArray) {
       scriptL1For.push(`
 _isArray = Array.isArray(srcVal);
-if (_isArray || (typeof srcVal === 'object' && !isBuiltIn(srcVal))) {`);
+if (typeof key !== 'symbol' && (_isArray || (${deepCondition}))) {`);
     } else {
       scriptL1For.push(`
-if (typeof srcVal === 'object' && !isBuiltIn(srcVal)) {
+if (typeof key !== 'symbol' && ${deepCondition}) {
   subPath = curPath + (curPath ? '.' : '') + key;`);
     }
     scriptL1For.push(`subPath = curPath + (curPath ? '.' : '') + key;`);

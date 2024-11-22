@@ -16,10 +16,12 @@ describe('merge', () => {
   });
 
   it('should copy values to target', () => {
-    const a: any = { a: 1, b: '2', e: 5 };
+    const sym = Symbol('x');
+    const a: any = { a: 1, b: '2', e: 5, sym };
     const b: any = { a: 2, c: 3, d: null };
     const o: any = merge(a, b);
     expect(o).toStrictEqual({
+      sym,
       a: 2,
       b: '2',
       c: 3,
@@ -276,7 +278,8 @@ describe('merge', () => {
   });
 
   it('should deep merge object values to target', () => {
-    const a: any = { a: 1, b: '2', c: { fop: 1 } };
+    const sym = Symbol('x');
+    const a: any = { a: 1, b: '2', c: { fop: 1 }, sym };
     const b: any = { a: '1', c: { foo: { bar: { baz: 1 } } } };
     const o: any = merge(a, b, { deep: true });
     b.c.foo.bar = 2;
@@ -284,7 +287,32 @@ describe('merge', () => {
       a: '1',
       b: '2',
       c: { fop: 1, foo: { bar: { baz: 1 } } },
+      sym,
     });
+  });
+
+  it('should not deep merge non plain objects', () => {
+    class MyClass {
+      x = 1;
+    }
+
+    const b = new MyClass();
+    const a = { a: 1, b };
+    const o: any = merge({}, a, { deep: true });
+    b.x = 2;
+    expect(o.b.x).toStrictEqual(2);
+  });
+
+  it('should  deep merge non plain objects if "deep" option set "full"', () => {
+    class MyClass {
+      x = 1;
+    }
+
+    const b = new MyClass();
+    const a = { a: 1, b };
+    const o: any = merge({}, a, { deep: 'full' });
+    b.x = 2;
+    expect(o.b.x).toStrictEqual(1);
   });
 
   it('should deep merge object with callback "deep" option', () => {
