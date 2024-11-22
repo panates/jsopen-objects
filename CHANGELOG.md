@@ -1,6 +1,6 @@
-# v1.3.0
+# v1.4.0
 [2024-11-22]
 
 ### Changes
 
-* feat: Added ability to merge non plain objects ([`3d32279`](https://github.com/panates/jsopen-objects/commit/3d3227998dbd8b345c24f4d7a0d9ab9bc3cd7b52))
+* feat: Added "full" option to "deep" config ([`3d2a51a`](https://github.com/panates/jsopen-objects/commit/3d2a51adff14d2ac67f3ec0c8760ae167febc4d7))
