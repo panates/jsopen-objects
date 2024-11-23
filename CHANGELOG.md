@@ -1,6 +1,6 @@
-# v1.4.0
-[2024-11-22]
+# v1.4.1
+[2024-11-23]
 
 ### Changes
 
-* feat: Added "full" option to "deep" config ([`3d2a51a`](https://github.com/panates/jsopen-objects/commit/3d2a51adff14d2ac67f3ec0c8760ae167febc4d7))
+* refactor: Optimized generated merge script ([`600e29d`](https://github.com/panates/jsopen-objects/commit/600e29db05ed0d6712d8f9623d632537efe756c4))
