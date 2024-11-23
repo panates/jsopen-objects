@@ -1,6 +1,6 @@
-# v1.4.1
+# v1.4.2
 [2024-11-23]
 
 ### Changes
 
-* refactor: Optimized generated merge script ([`600e29d`](https://github.com/panates/jsopen-objects/commit/600e29db05ed0d6712d8f9623d632537efe756c4))
+* refactor: Optimized typing ([`52b8f3a`](https://github.com/panates/jsopen-objects/commit/52b8f3a9ec0584c5afc77277b9b3269828cc7866))
