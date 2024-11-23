@@ -71,7 +71,6 @@ export function merge<A, B>(
     '',
     options,
     fn,
-    isBuiltIn,
     isObject,
     isPlainObject,
     arrayClone,
@@ -113,21 +112,10 @@ export function getMergeFunction(options?: merge.Options): Function {
 }
 
 function buildMerge(options?: merge.Options): Function {
-  const args = [
-    'target',
-    'source',
-    'curPath',
-    'options',
-    'mergeFunction',
-    'isBuiltIn',
-    'isObject',
-    'isPlainObject',
-    'arrayClone',
-  ];
   const scriptL0: any[] = [
     `
-const _merge = (_trgVal, _srcVal, _curPath) => 
-    mergeFunction(_trgVal, _srcVal, _curPath, options, mergeFunction, isBuiltIn, isObject, isPlainObject, arrayClone);
+const { options, merge, isObject, isPlainObject, deepTest, arrayClone } = context;
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 const keys = Object.getOwnPropertyNames(source);
 keys.push(...Object.getOwnPropertySymbols(source));
 let key;
@@ -136,7 +124,20 @@ let srcVal;
 let trgVal;
 `,
   ];
+  // noinspection JSUnusedGlobalSymbols
+  const context = {
+    options,
+    deepTest: isPlainObject,
+    isPlainObject,
+    isObject,
+    arrayClone,
+    merge: null as any,
+  };
+
   if (options?.deep) {
+    if (options.deep === 'full') {
+      context.deepTest = v => typeof v === 'object' && !isBuiltIn(v);
+    }
     scriptL0.push(`let subPath;`, `let _isArray;`);
     if (typeof options?.deep === 'function') {
       scriptL0.push(`const deepCallback = options.deep;`);
@@ -185,15 +186,11 @@ if (!filterCallback(key, source, target, curPath)) {
   if (typeof options?.ignore === 'function') {
     scriptL1For.push(`
 if (
-      Object.prototype.hasOwnProperty.call(target, key) && 
+      hasOwnProperty.call(target, key) && 
       ignoreCallback(key, source, target, curPath)
    ) continue;
 `);
   }
-
-  // scriptL1For.push(
-  //   `descriptor = { ...Object.getOwnPropertyDescriptor(source, key) };`,
-  // );
 
   /** ************* copyDescriptors *****************/
   if (options?.copyDescriptors) {
@@ -244,18 +241,13 @@ if (
 
   /** ************* deep *****************/
   if (options?.deep) {
-    const deepCondition =
-      options.deep === 'full'
-        ? `typeof srcVal === 'object' && !isBuiltIn(srcVal)`
-        : `isPlainObject(srcVal)`;
-
     if (deepArray) {
       scriptL1For.push(`
 _isArray = Array.isArray(srcVal);
-if (typeof key !== 'symbol' && (_isArray || (${deepCondition}))) {`);
+if (typeof key !== 'symbol' && (_isArray || deepTest(srcVal))) {`);
     } else {
       scriptL1For.push(`
-if (typeof key !== 'symbol' && ${deepCondition}) {
+if (typeof key !== 'symbol' && deepTest(srcVal)) {
   subPath = curPath + (curPath ? '.' : '') + key;`);
     }
     scriptL1For.push(`subPath = curPath + (curPath ? '.' : '') + key;`);
@@ -294,7 +286,7 @@ if (moveArraysCallback(key, subPath, target, source)) {
         scriptL4IsArray.push('}');
       }
       scriptL5CloneArrays.push(`
-descriptor.value = arrayClone(srcVal, _merge, subPath);
+descriptor.value = arrayClone(srcVal, merge, subPath);
 Object.defineProperty(target, key, descriptor);
 continue;
 `);
@@ -307,7 +299,7 @@ if (!isObject(trgVal)) {
   descriptor.value = trgVal = {};  
   Object.defineProperty(target, key, descriptor);
 }
-_merge(trgVal, srcVal, subPath, options);
+merge(trgVal, srcVal, subPath, options);
 continue;`);
   }
 
@@ -319,7 +311,10 @@ Object.defineProperty(target, key, descriptor);`);
 
   const script = _flattenText(scriptL0);
   // eslint-disable-next-line @typescript-eslint/no-implied-eval,prefer-const
-  return Function(...args, script);
+  const fn = Function('target', 'source', 'curPath', 'context', script);
+  context.merge = (target: any, source: any, curPath: string) =>
+    fn(target, source, curPath, context);
+  return context.merge;
 }
 
 function arrayClone(arr: any[], _merge: Function, curPath: string): any[] {
