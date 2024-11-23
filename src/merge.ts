@@ -1,57 +1,6 @@
 import { isObject, isPlainObject } from './is-object.js';
 import { isBuiltIn } from './type-guards.js';
 
-export namespace merge {
-  export type NodeCallback = (
-    key: string | symbol,
-    source: any,
-    target: any,
-    path: string,
-  ) => boolean;
-
-  export interface Options {
-    deep?: boolean | 'full' | NodeCallback;
-
-    /**
-     */
-    moveArrays?: boolean | NodeCallback;
-
-    /**
-     * Do not overwrite existing properties if set true
-     * @default false
-     */
-    keepExisting?: boolean;
-
-    /**
-     * Copy property descriptors
-     * @default false
-     */
-    copyDescriptors?: boolean | NodeCallback;
-
-    /**
-     * Do not copy source field if callback returns true
-     */
-    ignore?: NodeCallback;
-
-    /**
-     * Ignore fields which values are "undefined"
-     * @default true
-     */
-    ignoreUndefined?: boolean;
-
-    /**
-     * Ignore fields which values are "null"
-     * @default false
-     */
-    ignoreNulls?: boolean;
-
-    /**
-     *
-     */
-    filter?: NodeCallback;
-  }
-}
-
 export function merge<A, B>(
   target: A,
   source: B,
@@ -338,4 +287,55 @@ function _flattenText(arr: any[], level = 0): string {
       );
     })
     .join('\n');
+}
+
+export namespace merge {
+  export type NodeCallback = (
+    key: string | symbol,
+    source: any,
+    target: any,
+    path: string,
+  ) => boolean;
+
+  export interface Options {
+    deep?: boolean | 'full' | NodeCallback;
+
+    /**
+     */
+    moveArrays?: boolean | NodeCallback;
+
+    /**
+     * Do not overwrite existing properties if set true
+     * @default false
+     */
+    keepExisting?: boolean;
+
+    /**
+     * Copy property descriptors
+     * @default false
+     */
+    copyDescriptors?: boolean | NodeCallback;
+
+    /**
+     * Do not copy source field if callback returns true
+     */
+    ignore?: NodeCallback;
+
+    /**
+     * Ignore fields which values are "undefined"
+     * @default true
+     */
+    ignoreUndefined?: boolean;
+
+    /**
+     * Ignore fields which values are "null"
+     * @default false
+     */
+    ignoreNulls?: boolean;
+
+    /**
+     *
+     */
+    filter?: NodeCallback;
+  }
 }
