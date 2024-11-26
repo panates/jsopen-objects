@@ -1,6 +1,6 @@
-# v1.4.2
-[2024-11-23]
+# v1.5.0
+[2024-11-26]
 
 ### Changes
 
-* refactor: Optimized typing ([`52b8f3a`](https://github.com/panates/jsopen-objects/commit/52b8f3a9ec0584c5afc77277b9b3269828cc7866))
+* refactor: Optimized typing ([`a333bd9`](https://github.com/panates/jsopen-objects/commit/a333bd938277888a98a9161123f532872c65ac06))
