@@ -14,19 +14,9 @@ export function merge<A, B>(
     throw new TypeError('"target" argument must be an object');
   }
   const fn = getMergeFunction(options);
-  return fn(
-    target,
-    source,
-    '',
-    options,
-    fn,
-    isObject,
-    isPlainObject,
-    arrayClone,
-  );
+  return fn(target, source, options, '');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const functionCache = new Map<string, Function>();
 
 export function getMergeFunction(options?: merge.Options): Function {
@@ -63,7 +53,7 @@ export function getMergeFunction(options?: merge.Options): Function {
 function buildMerge(options?: merge.Options): Function {
   const scriptL0: any[] = [
     `
-const { options, merge, isObject, isPlainObject, deepTest, arrayClone } = context;
+const { merge, isObject, isPlainObject, deepTest, arrayClone } = context;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const keys = Object.getOwnPropertyNames(source);
 keys.push(...Object.getOwnPropertySymbols(source));
@@ -75,7 +65,6 @@ let trgVal;
   ];
   // noinspection JSUnusedGlobalSymbols
   const context = {
-    options,
     deepTest: isPlainObject,
     isPlainObject,
     isObject,
@@ -235,7 +224,7 @@ if (moveArraysCallback(key, subPath, target, source)) {
         scriptL4IsArray.push('}');
       }
       scriptL5CloneArrays.push(`
-descriptor.value = arrayClone(srcVal, merge, subPath);
+descriptor.value = arrayClone(srcVal, options, merge, subPath);
 Object.defineProperty(target, key, descriptor);
 continue;
 `);
@@ -248,7 +237,7 @@ if (!isObject(trgVal)) {
   descriptor.value = trgVal = {};  
   Object.defineProperty(target, key, descriptor);
 }
-merge(trgVal, srcVal, subPath, options);
+merge(trgVal, srcVal, options, subPath);
 continue;`);
   }
 
@@ -259,17 +248,33 @@ Object.defineProperty(target, key, descriptor);`);
   scriptL0.push('return target;');
 
   const script = _flattenText(scriptL0);
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval,prefer-const
-  const fn = Function('target', 'source', 'curPath', 'context', script);
-  context.merge = (target: any, source: any, curPath: string) =>
-    fn(target, source, curPath, context);
+  const fn = Function(
+    'target',
+    'source',
+    'options',
+    'curPath',
+    'context',
+    script,
+  );
+  context.merge = (
+    target: any,
+    source: any,
+    opts: merge.Options,
+    curPath: string,
+  ) => fn(target, source, opts, curPath, context);
   return context.merge;
 }
 
-function arrayClone(arr: any[], _merge: Function, curPath: string): any[] {
+function arrayClone(
+  arr: any[],
+  options: merge.Options,
+  _merge: Function,
+  curPath: string,
+): any[] {
   return arr.map((x: any) => {
-    if (Array.isArray(x)) return arrayClone(x, _merge, curPath);
-    if (typeof x === 'object' && !isBuiltIn(x)) return _merge({}, x, curPath);
+    if (Array.isArray(x)) return arrayClone(x, options, _merge, curPath);
+    if (typeof x === 'object' && !isBuiltIn(x))
+      return _merge({}, x, options, curPath);
     return x;
   });
 }
