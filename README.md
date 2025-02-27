@@ -23,8 +23,8 @@ A 'swiss army knife' solution for working with javascript objects.
 [npm-url]: https://npmjs.org/package/@jsopen/objects
 [ci-test-image]: https://github.com/panates/jsopen-objects/actions/workflows/test.yml/badge.svg
 [ci-test-url]: https://github.com/panates/jsopen-objects/actions/workflows/test.yml
-[coveralls-image]: https://img.shields.io/coveralls/panates/@jsopen/objects/master.svg
-[coveralls-url]: https://coveralls.io/r/panates/@jsopen/objects
+[coveralls-image]: https://coveralls.io/repos/github/panates/jsopen-objects/badge.svg?branch=main
+[coveralls-url]: https://coveralls.io/github/panates/jsopen-objects?branch=main
 [downloads-image]: https://img.shields.io/npm/dm/@jsopen/objects.svg
 [downloads-url]: https://npmjs.org/package/@jsopen/objects
 
