@@ -1,7 +1,7 @@
 {
   "name": "@jsopen/objects",
   "description": "Helper utilities for working with JavaScript objects and arrays",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "author": "Panates",
   "license": "MIT",
   "private": true,
