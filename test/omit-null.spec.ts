@@ -1,4 +1,5 @@
 import { omitNull } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('omitNull', () => {
   it('should omit null fields', () => {

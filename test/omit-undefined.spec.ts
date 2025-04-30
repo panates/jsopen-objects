@@ -1,4 +1,5 @@
 import { omitUndefined } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('omitUndefined', () => {
   it('should omit undefined fields', () => {

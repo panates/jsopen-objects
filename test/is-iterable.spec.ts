@@ -1,4 +1,5 @@
 import { isIterable } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('isIterable', () => {
   it('Should return true for iterables', () => {

@@ -1,4 +1,5 @@
 import { isBuiltIn } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('isBuiltIn', () => {
   it('Array', () => {

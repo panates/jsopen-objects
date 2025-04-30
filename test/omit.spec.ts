@@ -1,4 +1,5 @@
 import { omit } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('omit', () => {
   it('should omit fields', () => {

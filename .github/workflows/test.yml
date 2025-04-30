@@ -1,51 +1,63 @@
-name: test
+name: Test
+on:
+  workflow_call:
+    secrets:
+      PERSONAL_ACCESS_TOKEN:
 
-on: [ push ]
+  # Can be run manually
+  workflow_dispatch:
+
+  # on git push
+  push:
+    branches:
+      - dev
+
+# Only one run per branch at a time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # ***********************************
+  # Job: Test
+  # ***********************************
   test:
-    name: Node v${{ matrix.node }}
+    name: 'Tests'
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'push' &&
+        !(
+          contains(github.event.head_commit.message, 'no-test') ||
+          ( 
+            startsWith(github.event.head_commit.message, 'Merge pull request') &&
+            contains(github.event.head_commit.message, '/dev')
+          )
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        node: [ '18', '20', '22' ]
-    runs-on: ubuntu-latest
+        node: [ '18', '20', '22', '23' ]
 
     steps:
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # - uses: denoland/setup-deno@v1
-      #  with:
-      #    deno-version: v1.x
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
+      - name: Setup Environment
+        uses: panates/gh-setup-node@v1
         with:
-          node-version: ${{ matrix.node }}
-          cache: npm
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Install NodeJS dependencies
-        run: npm ci
-
-      - name: Run linter test
-        run: npm run lint
-
-      - name: Run circular dependency test
-        run: npm run check
-
-      - name: Run compile test
-        run: npm run compile
-
-      - name: Run unit tests
-        run: npm run citest
+      - name: Apply tests
+        run: |
+          npm run qc
+          npm run citest
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
 
       - name: Send coverage to Coveralls
         uses: coverallsapp/github-action@v2
         # Run only once
-        if: ${{ matrix.node == '20' }}
+        if: ${{ matrix.node == '22' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

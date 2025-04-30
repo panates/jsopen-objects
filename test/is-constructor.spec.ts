@@ -1,4 +1,5 @@
 import { isConstructor } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('isConstructor', () => {
   it('Should return true for constructors', () => {

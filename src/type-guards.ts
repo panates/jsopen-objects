@@ -13,7 +13,6 @@ export function isBuiltIn(v: any): boolean {
         v instanceof Promise ||
         v instanceof Error ||
         v instanceof ArrayBuffer ||
-        v instanceof SharedArrayBuffer ||
         v instanceof Uint8Array ||
         v instanceof Uint8ClampedArray ||
         v instanceof Uint16Array ||
@@ -22,6 +21,7 @@ export function isBuiltIn(v: any): boolean {
         v instanceof Int8Array ||
         v instanceof Int16Array ||
         v instanceof Int32Array ||
+        v.constructor.name === 'SharedArrayBuffer' ||
         Buffer.isBuffer(v))) ||
     Array.isArray(v)
   );

@@ -1,4 +1,5 @@
 import { omitNullish } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('omitNullish', () => {
   it('should omit nullish fields', () => {

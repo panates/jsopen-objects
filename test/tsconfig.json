@@ -2,10 +2,11 @@
   "extends": "../tsconfig-base.json",
   "include": ["**/*.ts"],
   "compilerOptions": {
-    "types": ["node", "jest"],
+    "types": ["node", "mocha"],
+    "sourceMap": true,
     "baseUrl": "./",
     "paths": {
-      "@jsopen/objects": ["../src"]
+      "@jsopen/objects": ["../src/index.js"]
     }
   }
 }

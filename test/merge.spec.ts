@@ -1,4 +1,5 @@
 import { merge } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('merge', () => {
   it('should throw if target is not an object', () => {

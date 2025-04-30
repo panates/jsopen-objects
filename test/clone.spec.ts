@@ -1,4 +1,5 @@
 import { clone } from '@jsopen/objects';
+import { expect } from 'expect';
 
 describe('clone', () => {
   it('should deep clone', () => {
