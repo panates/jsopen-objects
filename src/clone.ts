@@ -1,3 +1,4 @@
+import { StrictOmit } from 'ts-gems';
 import { merge } from './merge.js';
 
 export function clone<T extends object>(obj: T, options?: merge.Options): T {
@@ -7,6 +8,9 @@ export function clone<T extends object>(obj: T, options?: merge.Options): T {
   });
 }
 
-export function deepClone<T extends object>(obj: T): T {
-  return clone(obj, { deep: 'full' });
+export function deepClone<T extends object>(
+  obj: T,
+  options?: StrictOmit<merge.Options, 'deep'>,
+): T {
+  return clone(obj, { ...options, deep: 'full' });
 }
