@@ -6,3 +6,7 @@ export function clone<T extends object>(obj: T, options?: merge.Options): T {
     deep: options?.deep ?? true,
   });
 }
+
+export function deepClone<T extends object>(obj: T): T {
+  return clone(obj, { deep: 'full' });
+}
