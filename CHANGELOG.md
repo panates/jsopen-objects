@@ -1,7 +1,7 @@
 ## Changelog
 
-### [v1.6.2](https://github.com/panates/jsopen-objects/compare/v1.6.1...v1.6.2) - 
+### [v1.6.3](https://github.com/panates/jsopen-objects/compare/v1.6.2...v1.6.3) - 
 
-#### 🚀 New Features
+#### 🪲 Fixes
 
-- feat: Added options to deepClone @Eray Hanoğlu 
+- fix: merge fails on null fields @Eray Hanoğlu 
