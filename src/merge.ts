@@ -74,7 +74,7 @@ let trgVal;
 
   if (options?.deep) {
     if (options.deep === 'full') {
-      context.deepTest = v => typeof v === 'object' && !isBuiltIn(v);
+      context.deepTest = v => v && typeof v === 'object' && !isBuiltIn(v);
     }
     scriptL0.push(`let subPath;`, `let _isArray;`);
     if (typeof options?.deep === 'function') {
