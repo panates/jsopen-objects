@@ -2,7 +2,8 @@ import { Type } from 'ts-gems';
 
 export function isBuiltIn(v: any): boolean {
   return (
-    (typeof v === 'object' &&
+    (v &&
+      typeof v === 'object' &&
       (v instanceof Date ||
         v instanceof RegExp ||
         v instanceof Map ||

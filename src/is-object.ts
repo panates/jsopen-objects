@@ -6,6 +6,7 @@ export function isObject(v: any): boolean {
 
 export function isPlainObject(obj: any): boolean {
   if (
+    obj &&
     typeof obj === 'object' &&
     Object.prototype.toString.call(obj) === '[object Object]'
   ) {
