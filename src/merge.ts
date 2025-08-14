@@ -1,330 +1,299 @@
 import { isObject, isPlainObject } from './is-object.js';
 import { isBuiltIn } from './type-guards.js';
 
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
 export function merge<A, B>(
   target: A,
   source: B,
   options?: merge.Options,
-): A & B {
-  if (!(isObject(target) || typeof target === 'function')) {
+): A & B;
+export function merge<A, B, C>(
+  target: A,
+  source: [B, C],
+  options?: merge.Options,
+): A & B & C;
+export function merge<A, B, C, D>(
+  target: A,
+  source: [B, C, D],
+  options?: merge.Options,
+): A & B & C & D;
+export function merge<A, B, C, D, E>(
+  target: A,
+  source: [B, C, D, E],
+  options?: merge.Options,
+): A & B & C & D & E;
+export function merge<A, B, C, D, F>(
+  target: A,
+  source: [B, C, D, F],
+  options?: merge.Options,
+): A & B & C & D & F;
+export function merge(
+  targetObject: any,
+  sourceObject: any,
+  options?: merge.Options,
+): any {
+  if (!(isObject(targetObject) || typeof targetObject === 'function')) {
     throw new TypeError('"target" argument must be an object');
   }
-  source = source || ({} as B);
-  if (!(isObject(source) || typeof target === 'function')) {
-    throw new TypeError('"target" argument must be an object');
-  }
-  const fn = getMergeFunction(options);
-  return fn(target, source, options, '');
-}
-
-const functionCache = new Map<string, Function>();
-
-export function getMergeFunction(options?: merge.Options): Function {
-  const cacheKey = [
-    options?.deep,
-    options?.moveArrays,
-    options?.keepExisting,
-    options?.copyDescriptors,
-    options?.ignore,
-    options?.ignoreUndefined,
-    options?.ignoreNulls,
-    options?.filter,
-  ]
-    .map(option =>
-      option == null
-        ? 'n'
-        : typeof option === 'function'
-          ? 'f'
-          : typeof option === 'string'
-            ? option
-            : option
-              ? '1'
-              : '0',
+  if (sourceObject == null) return targetObject;
+  if (
+    !(
+      isObject(sourceObject) ||
+      typeof sourceObject === 'function' ||
+      Array.isArray(sourceObject)
     )
-    .join();
-  let fn = functionCache.get(cacheKey);
-  if (!fn) {
-    fn = buildMerge(options);
-    functionCache.set(cacheKey, fn);
-  }
-  return fn;
-}
-
-function buildMerge(options?: merge.Options): Function {
-  const scriptL0: any[] = [
-    `
-const { merge, isObject, isPlainObject, deepTest, arrayClone } = context;
-const hasOwnProperty = Object.prototype.hasOwnProperty;
-const keys = Object.getOwnPropertyNames(source);
-keys.push(...Object.getOwnPropertySymbols(source));
-let key;
-let descriptor;
-let srcVal;
-let trgVal;
-`,
-  ];
-  // noinspection JSUnusedGlobalSymbols
-  const context = {
-    deepTest: isPlainObject,
-    isPlainObject,
-    isObject,
-    arrayClone,
-    merge: null as any,
-  };
-
-  if (options?.deep) {
-    if (options.deep === 'full') {
-      context.deepTest = v => v && typeof v === 'object' && !isBuiltIn(v);
-    }
-    scriptL0.push(`let subPath;`, `let _isArray;`);
-    if (typeof options?.deep === 'function') {
-      scriptL0.push(`const deepCallback = options.deep;`);
-    }
-  }
-
-  if (typeof options?.ignore === 'function') {
-    scriptL0.push('const ignoreCallback = options.ignore;');
-  }
-
-  if (typeof options?.filter === 'function') {
-    scriptL0.push('const filterCallback = options.filter;');
-  }
-
-  if (typeof options?.copyDescriptors === 'function') {
-    scriptL0.push(`const copyDescriptorsCallback = options.copyDescriptors;`);
-  }
-
-  if (typeof options?.moveArrays === 'function') {
-    scriptL0.push(`const moveArraysCallback = options.moveArrays;`);
-  }
-
-  scriptL0.push(`
-if (isPlainObject(target)) Object.setPrototypeOf(target, Object.getPrototypeOf(source));  
-let i = 0;
-const len = keys.length;
-for (i = 0; i < len; i++) {
-  key = keys[i];
-  /** Should not overwrite __proto__ and constructor properties */
-  if (key === '__proto__' || key === 'constructor') continue;
-`);
-  const scriptL1For: any[] = [];
-  scriptL0.push(scriptL1For);
-  scriptL0.push('}');
-
-  /** ************* filter *****************/
-  if (options?.filter) {
-    scriptL1For.push(`
-if (!filterCallback(key, source, target, curPath)) {
-  delete target[key];
-  continue;
-}`);
-  }
-
-  /** ************* ignore *****************/
-  if (typeof options?.ignore === 'function') {
-    scriptL1For.push(`
-if (
-      hasOwnProperty.call(target, key) && 
-      ignoreCallback(key, source, target, curPath)
-   ) continue;
-`);
-  }
-
-  /** ************* copyDescriptors *****************/
-  if (options?.copyDescriptors) {
-    let scriptL2Descriptors = scriptL1For;
-
-    if (typeof options?.copyDescriptors === 'function') {
-      scriptL1For.push(
-        'if (copyDescriptorsCallback(key, source, target, curPath)) {',
-      );
-      scriptL2Descriptors = [];
-      scriptL1For.push(scriptL2Descriptors);
-      scriptL1For.push(`} else`);
-      scriptL1For.push(
-        `  descriptor = {enumerable: true, configurable: true, writable: true}`,
-      );
-    }
-    scriptL2Descriptors.push(`
-  descriptor = { ...Object.getOwnPropertyDescriptor(source, key) }
-  if ((descriptor.get || descriptor.set)) {
-    Object.defineProperty(target, key, descriptor);
-    continue;
-  }
-  srcVal = source[key];`);
-  } else {
-    scriptL1For.push(
-      `descriptor = {enumerable: true, configurable: true, writable: true}`,
-      `srcVal = source[key];`,
+  ) {
+    throw new TypeError(
+      '"target" argument must be an object or array of objects',
     );
   }
+  const keepExisting = options?.keepExisting;
+  const keepExistingFn =
+    typeof options?.keepExisting === 'function'
+      ? options?.keepExisting
+      : undefined;
+  const filterFn = options?.filter;
+  const ignoreUndefined = options?.ignoreUndefined ?? true;
+  const ignoreNulls = options?.ignoreNulls;
+  const deep = options?.deep;
+  const deepFull = deep === 'full';
+  const deepFn =
+    typeof options?.deep === 'function' ? options?.deep : undefined;
+  const copyDescriptors = options?.copyDescriptors;
+  const mergeArrays = options?.mergeArrays;
+  const mergeArraysUnique = options?.mergeArrays === 'unique';
+  const mergeArraysFn =
+    typeof options?.mergeArrays === 'function'
+      ? options?.mergeArrays
+      : undefined;
 
-  /** ************* keepExisting *****************/
-  if (options?.keepExisting) {
-    scriptL1For.push(`if (hasOwnProperty.call(target, key)) continue;`);
-  }
+  const _merge = (target: any, source: any, parentPath: string = '') => {
+    if (!isObject(source)) return;
+    const keys: (string | symbol)[] = Object.getOwnPropertyNames(source);
+    if (options?.symbolKeys) keys.push(...Object.getOwnPropertySymbols(source));
+    let key: string | symbol | number;
+    let descriptor: PropertyDescriptor | undefined;
+    let srcVal: any;
+    let _goDeep = false;
+    if (isPlainObject(target))
+      Object.setPrototypeOf(target, Object.getPrototypeOf(source));
+    const ignoreFn = options?.ignoreSource;
+    let i = 0;
+    const len = keys.length;
+    for (i = 0; i < len; i++) {
+      key = keys[i];
+      /** Should not overwrite __proto__ and constructor properties */
+      if (key === '__proto__' || key === 'constructor') continue;
 
-  /** ************* ignoreUndefined *****************/
-  if (options?.ignoreUndefined ?? true) {
-    scriptL1For.push(`if (srcVal === undefined) continue;`);
-  }
-
-  /** ************* ignoreNulls *****************/
-  if (options?.ignoreNulls) {
-    scriptL1For.push(`if (srcVal === null) continue;`);
-  }
-
-  const deepArray =
-    !options?.moveArrays || typeof options?.moveArrays === 'function';
-
-  /** ************* deep *****************/
-  if (options?.deep) {
-    if (deepArray) {
-      scriptL1For.push(`
-_isArray = Array.isArray(srcVal);
-if (typeof key !== 'symbol' && (_isArray || deepTest(srcVal))) {`);
-    } else {
-      scriptL1For.push(`
-if (typeof key !== 'symbol' && deepTest(srcVal)) {
-  subPath = curPath + (curPath ? '.' : '') + key;`);
-    }
-    scriptL1For.push(`subPath = curPath + (curPath ? '.' : '') + key;`);
-    const scriptL2Deep: any[] = [];
-    scriptL1For.push(scriptL2Deep);
-    scriptL1For.push('}');
-
-    let scriptL3Deep = scriptL2Deep;
-
-    if (typeof options?.deep === 'function') {
-      scriptL2Deep.push(`
-if (deepCallback(key, subPath, target, source)) {`);
-      scriptL3Deep = [];
-      scriptL2Deep.push(scriptL3Deep);
-      scriptL2Deep.push('}');
-    }
-
-    /** ************* Array *****************/
-    if (!options?.moveArrays || typeof options?.moveArrays === 'function') {
-      scriptL3Deep.push(`if (_isArray) {`);
-      const scriptL4IsArray: any[] = [];
-      scriptL3Deep.push(scriptL4IsArray);
-      scriptL3Deep.push('}');
-
-      let scriptL5CloneArrays = scriptL4IsArray;
-
-      if (typeof options?.moveArrays === 'function') {
-        scriptL4IsArray.push(`
-if (moveArraysCallback(key, subPath, target, source)) {
-  descriptor.value = srcVal;
-  Object.defineProperty(target, key, descriptor);
-  continue;
-} else {`);
-        scriptL5CloneArrays = [];
-        scriptL4IsArray.push(scriptL5CloneArrays);
-        scriptL4IsArray.push('}');
+      if (copyDescriptors) {
+        descriptor = Object.getOwnPropertyDescriptor(source, key);
+        if (descriptor?.get || descriptor?.set) {
+          Object.defineProperty(target, key, descriptor);
+          continue;
+        }
       }
-      scriptL5CloneArrays.push(`
-descriptor.value = arrayClone(srcVal, options, merge, subPath);
-Object.defineProperty(target, key, descriptor);
-continue;
-`);
+
+      srcVal = source[key];
+
+      if (
+        ignoreFn?.(srcVal, {
+          key,
+          source,
+          target,
+          path: parentPath + (parentPath ? '.' : '') + String(key),
+        })
+      ) {
+        continue;
+      }
+
+      if (keepExisting && hasOwnProperty.call(target, key)) {
+        if (!keepExistingFn) continue;
+        if (
+          keepExistingFn(srcVal, {
+            key,
+            source,
+            target,
+            path: parentPath + (parentPath ? '.' : '') + String(key),
+          })
+        ) {
+          continue;
+        }
+      }
+
+      if (
+        filterFn &&
+        !filterFn(srcVal, {
+          key,
+          source,
+          target,
+          path: parentPath + (parentPath ? '.' : '') + String(key),
+        })
+      ) {
+        continue;
+      }
+
+      if (ignoreUndefined && srcVal === undefined) {
+        continue;
+      }
+
+      if (ignoreNulls && srcVal === null) {
+        continue;
+      }
+
+      if (
+        deep &&
+        typeof srcVal === 'object' &&
+        (!isBuiltIn(srcVal) || Array.isArray(srcVal))
+      ) {
+        _goDeep =
+          (deepFn &&
+            deepFn(srcVal, {
+              key,
+              source,
+              target,
+              path: parentPath + (parentPath ? '.' : '') + String(key),
+            })) ||
+          (!deepFn &&
+            (deepFull || isPlainObject(srcVal) || Array.isArray(srcVal)));
+        if (_goDeep) {
+          /** Array */
+          if (Array.isArray(srcVal)) {
+            if (
+              Array.isArray(target[key]) &&
+              (mergeArrays ||
+                mergeArraysFn?.(srcVal, {
+                  key,
+                  source,
+                  target,
+                  path: parentPath + (parentPath ? '.' : '') + String(key),
+                }))
+            ) {
+              target[key] = _arrayClone(
+                target[key],
+                parentPath + (parentPath ? '.' : '') + String(key),
+              );
+            } else target[key] = [];
+
+            target[key].push(
+              ..._arrayClone(
+                srcVal,
+                parentPath + (parentPath ? '.' : '') + String(key),
+              ),
+            );
+            if (mergeArraysUnique)
+              target[key] = Array.from(new Set(target[key]));
+            continue;
+          } else {
+            /** Object */
+            if (!isObject(target[key])) target[key] = {};
+            _merge(
+              target[key],
+              srcVal,
+              parentPath + (parentPath ? '.' : '') + String(key),
+            );
+            continue;
+          }
+        }
+      }
+
+      if (copyDescriptors) {
+        descriptor = { ...Object.getOwnPropertyDescriptor(source, key) };
+        descriptor.value = srcVal;
+        Object.defineProperty(target, key, descriptor);
+        continue;
+      }
+      target[key] = srcVal;
     }
+    return target;
+  };
 
-    /** ************* object *****************/
-    scriptL3Deep.push(`
-trgVal = target[key];
-if (!isObject(trgVal)) {
-  descriptor.value = trgVal = {};  
-  Object.defineProperty(target, key, descriptor);
-}
-merge(trgVal, srcVal, options, subPath);
-continue;`);
+  const _arrayClone = (arr: any[], curPath: string): any[] => {
+    return arr.map((x: any, index) => {
+      if (Array.isArray(x)) return _arrayClone(x, curPath + '[' + index + ']');
+      if (typeof x === 'object' && !isBuiltIn(x))
+        return _merge({}, x, curPath + '[' + index + ']');
+      return x;
+    });
+  };
+
+  const sources = Array.isArray(sourceObject) ? sourceObject : [sourceObject];
+  for (const src of sources) {
+    _merge(targetObject, src);
   }
-
-  /** ************* finalize *****************/
-  scriptL1For.push(`
-descriptor.value = srcVal;
-Object.defineProperty(target, key, descriptor);`);
-  scriptL0.push('return target;');
-
-  const script = _flattenText(scriptL0);
-  const fn = Function(
-    'target',
-    'source',
-    'options',
-    'curPath',
-    'context',
-    script,
-  );
-  context.merge = (
-    target: any,
-    source: any,
-    opts: merge.Options,
-    curPath: string,
-  ) => fn(target, source, opts, curPath, context);
-  return context.merge;
+  return targetObject;
 }
 
-function arrayClone(
-  arr: any[],
-  options: merge.Options,
-  _merge: Function,
-  curPath: string,
-): any[] {
-  return arr.map((x: any) => {
-    if (Array.isArray(x)) return arrayClone(x, options, _merge, curPath);
-    if (typeof x === 'object' && !isBuiltIn(x))
-      return _merge({}, x, options, curPath);
-    return x;
-  });
-}
-
-function _flattenText(arr: any[], level = 0): string {
-  const indent = '  '.repeat(level);
-  return arr
-    .map(v => {
-      if (Array.isArray(v)) return _flattenText(v, level + 1);
-      return (
-        indent +
-        String(v)
-          .trim()
-          .replace(/\n/g, '\n' + indent)
-      );
-    })
-    .join('\n');
-}
-
+/**
+ * @namespace
+ */
 export namespace merge {
-  export type NodeCallback = (
-    key: string | symbol,
-    source: any,
-    target: any,
-    path: string,
-  ) => boolean;
+  export type CallbackFn = (value: any, ctx: CallbackContext) => boolean;
+
+  export interface CallbackContext {
+    source: any;
+    target: any;
+    key: string | symbol | number;
+    path: string;
+  }
 
   export interface Options {
-    deep?: boolean | 'full' | NodeCallback;
-
     /**
-     */
-    moveArrays?: boolean | NodeCallback;
-
-    /**
-     * Do not overwrite existing properties if set true
+     * Optional variable that determines the depth of an operation or inclusion behavior.
+     *
+     * - If set to `true`, it enables a deep operation for only native js objects, excluding classes.
+     * - If set to `'full'`, it enables a deep operation for all objects, including classes, excluding built-in objects
+     * - If assigned a `NodeCallback` function, it provides a custom callback mechanism for handling the operation.
+     *
+     * This variable can be used to define the level of depth or customization for a given process.
      * @default false
      */
-    keepExisting?: boolean;
+    deep?: boolean | 'full' | CallbackFn;
 
     /**
-     * Copy property descriptors
-     * @default false
+     * Indicates whether symbol keys should be included.
+     * If set to `true`, properties with symbol keys will be considered.
+     * If `false` or `undefined`, symbol keys will be ignored.
      */
-    copyDescriptors?: boolean | NodeCallback;
+    symbolKeys?: boolean;
 
     /**
-     * Do not copy source field if callback returns true
+     * Specifies the behavior for merging arrays during a particular operation.
+     *
+     * When set to `true`, all array elements will be deeply merged, preserving all duplicates.
+     * When set to `'unique'`, only unique elements will be preserved in the merged array.
+     * If a callback function (`CallbackFn`) is provided, it determines the custom merging logic for the arrays.
      */
-    ignore?: NodeCallback;
+    mergeArrays?: boolean | 'unique' | CallbackFn;
+
+    /**
+     * Determines whether to retain pre-existing values.
+     * If set to `true`, existing entities are preserved without modification.
+     * If set to `false`, existing entities may be replaced or overridden by new ones.
+     * Alternatively, can be assigned a callback function (`CallbackFn`) that dynamically resolves whether to keep existing entities based on custom logic.
+     */
+    keepExisting?: boolean | CallbackFn;
+
+    /**
+     * A boolean flag that determines whether property descriptors
+     * should be copied when transferring properties from one object
+     * to another.
+     *
+     * If set to true, both the value and descriptor metadata
+     * (e.g., writable, configurable, enumerable) of a property
+     * will be copied. If set to false or undefined, only the
+     * property values will be copied, without preserving descriptor
+     * details.
+     *
+     * This is typically used when needing to retain detailed control
+     * over property attributes during object manipulation.
+     */
+    copyDescriptors?: boolean;
+
+    /**
+     * Ignores the source field if callback returns true
+     */
+    ignoreSource?: CallbackFn;
 
     /**
      * Ignore fields which values are "undefined"
@@ -339,8 +308,8 @@ export namespace merge {
     ignoreNulls?: boolean;
 
     /**
-     *
+     * Ignores both target and source field if callback returns true
      */
-    filter?: NodeCallback;
+    filter?: CallbackFn;
   }
 }

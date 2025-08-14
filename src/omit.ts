@@ -14,7 +14,7 @@ export function omit<T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
   const keysSet = new Set<any>(keys);
   return merge({}, obj, {
     deep: false,
-    filter(key) {
+    filter(_, { key }) {
       return !keysSet.has(key);
     },
   });
