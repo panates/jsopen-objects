@@ -1,11 +1,12 @@
 ## Changelog
 
-### [v2.0.0](https://github.com/panates/jsopen-objects/compare/v1.6.3...v2.0.0) - 
-
-#### 🚀 New Features
-
-- refactor: Refactored merge method. Stopping using function compilation. @Eray Hanoğlu 
+### [v2.0.1](https://github.com/panates/jsopen-objects/compare/v2.0.0...v2.0.1) - 
 
 #### 🛠 Refactoring and Updates
 
-- refactor: Refactored merge method. Stopping using function compilation. @Eray Hanoğlu 
+- refactor: Made default "symbolKeys" option to true @Eray Hanoğlu 
+
+#### 💬 General Changes
+
+- dev: Coveralls parallel @Eray Hanoğlu 
+- dev: Coveralls parallel @Eray Hanoğlu 

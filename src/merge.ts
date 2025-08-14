@@ -71,7 +71,8 @@ export function merge(
   const _merge = (target: any, source: any, parentPath: string = '') => {
     if (!isObject(source)) return;
     const keys: (string | symbol)[] = Object.getOwnPropertyNames(source);
-    if (options?.symbolKeys) keys.push(...Object.getOwnPropertySymbols(source));
+    if (options?.symbolKeys ?? true)
+      keys.push(...Object.getOwnPropertySymbols(source));
     let key: string | symbol | number;
     let descriptor: PropertyDescriptor | undefined;
     let srcVal: any;
@@ -254,6 +255,7 @@ export namespace merge {
      * Indicates whether symbol keys should be included.
      * If set to `true`, properties with symbol keys will be considered.
      * If `false` or `undefined`, symbol keys will be ignored.
+     * @default true
      */
     symbolKeys?: boolean;
 
