@@ -7,7 +7,7 @@ describe('merge', () => {
   });
 
   it('should throw if source is not an object', () => {
-    expect(() => merge({}, [])).toThrow('must be an object');
+    expect(() => merge({}, 'string')).toThrow('must be an object');
   });
 
   it('should ignore source if null', () => {
@@ -28,6 +28,18 @@ describe('merge', () => {
       c: 3,
       d: null,
       e: 5,
+    });
+  });
+
+  it('should merge multiple objects', () => {
+    const a: any = { a: 1 };
+    const b: any = { b: 2 };
+    const c: any = { c: 3 };
+    const o: any = merge(a, [b, c]);
+    expect(o).toStrictEqual({
+      ...a,
+      ...b,
+      ...c,
     });
   });
 
@@ -73,7 +85,7 @@ describe('merge', () => {
       writable: false,
       value: 1,
     });
-    const o = merge({}, a, { copyDescriptors: () => true });
+    const o = merge({}, a, { copyDescriptors: true });
     expect(Object.getOwnPropertyDescriptor(o, 'foo')).toStrictEqual({
       configurable: true,
       enumerable: false,
@@ -125,10 +137,10 @@ describe('merge', () => {
 
   it('should ignore source value by ignore callback', () => {
     const a: any = { a: 1, b: 2 };
-    const b: any = { a: null, b: null };
+    const b: any = { a: true, b: null };
     const o: any = merge(a, b, {
-      ignore(key) {
-        return key === 'a';
+      ignoreSource(v) {
+        return typeof v === 'boolean';
       },
     });
     expect(o).toStrictEqual({
@@ -206,32 +218,6 @@ describe('merge', () => {
     });
   });
 
-  it('should apply filter on target object', () => {
-    const a: any = { a: 1, b: 2 };
-    const b: any = { a: 2, c: 3 };
-    const o: any = merge(a, b, {
-      filter: key => key !== 'a',
-    });
-    expect(o).toStrictEqual({
-      b: 2,
-      c: 3,
-    });
-  });
-
-  it('should perform deep filter', () => {
-    const a: any = { a: 1, b: '2' };
-    const b: any = { a: '1', c: { foo: 1 } };
-    const o: any = merge(a, b, {
-      deep: true,
-      filter: key => key !== 'foo',
-    });
-    expect(o).toStrictEqual({
-      a: '1',
-      b: '2',
-      c: {},
-    });
-  });
-
   it('should prevent Prototype Pollution vulnerability (__proto__)', () => {
     const payload: any = JSON.parse(
       '{"__proto__":{"polluted":"Yes! Its Polluted"}}',
@@ -250,7 +236,7 @@ describe('merge', () => {
     expect(obj.polluted).not.toBeDefined();
   });
 
-  it('should copy object values to target', () => {
+  it('should copy object values to target if not deep enabled', () => {
     const a: any = { a: 1, b: '2' };
     const b: any = { a: '1', c: { foo: 1 } };
     const o: any = merge(a, b);
@@ -267,15 +253,16 @@ describe('merge', () => {
     });
   });
 
-  it('should copy function/class values to target', () => {
-    const a: any = { a: 1, b: 2 };
-    const b: any = { c: Boolean };
-    const o: any = merge(a, b);
-    expect(o).toStrictEqual({
-      a: 1,
-      b: 2,
-      c: Boolean,
-    });
+  it('should not clone function/class values when options.deep != full', () => {
+    class MyClass {
+      x = 1;
+    }
+    const a: any = {};
+    const b: any = { c: () => true, d: new MyClass() };
+    const o: any = merge(a, b, { deep: true });
+    b.d.x = 2;
+    expect(o.c).toEqual(b.c);
+    expect(o.d).toEqual(b.d);
   });
 
   it('should deep merge object values to target', () => {
@@ -320,7 +307,7 @@ describe('merge', () => {
     const a: any = { a: 1, b: '2', c: { fop: 1 }, d: { a: 1 } };
     const b: any = { a: '1', c: { foo: { bar: { baz: 1 } } }, d: { b: 2 } };
     const o: any = merge(a, b, {
-      deep: (_, path) => path.startsWith('c'),
+      deep: (_, { path }) => path.startsWith('c'),
     });
     b.c.foo.bar = 2;
     expect(o).toStrictEqual({
@@ -341,16 +328,11 @@ describe('merge', () => {
     });
   });
 
-  it('should copy array values', () => {
+  it('should move array values if not deep', () => {
     const a: any = { foo: [1, 2] };
     const b: any = { foo: [2, 3, { a: 1 }] };
     const o: any = merge(a, b);
-    expect(o).toStrictEqual(b);
-    expect(o.foo).toStrictEqual(b.foo);
-    b.foo[2].a = 2;
-    expect(o.foo[2]).toEqual(b.foo[2]);
-    b.foo.push(5);
-    expect(o.foo).toEqual(b.foo);
+    expect(o.foo === b.foo).toBeTruthy();
   });
 
   it('should clone array values if deep option set', () => {
@@ -358,37 +340,52 @@ describe('merge', () => {
     const b: any = { foo: [2, 3, { a: 1 }] };
     const o: any = merge(a, b, { deep: true });
     expect(o).toStrictEqual(b);
-    expect(o.foo).toStrictEqual(b.foo);
+    expect(o.foo === b.foo).not.toBeTruthy();
     b.foo[2].a = 2;
     expect(o.foo[2]).not.toEqual(b.foo[2]);
     b.foo.push(5);
     expect(o.foo).not.toEqual(b.foo);
   });
 
-  it('should not clone array values if moveArrays set true', () => {
+  it('should merge array values if mergeArray option set', () => {
     const a: any = { foo: [1, 2] };
     const b: any = { foo: [2, 3, { a: 1 }] };
-    const o: any = merge(a, b, { deep: true, moveArrays: true });
-    expect(o).toStrictEqual(b);
-    expect(o.foo).toStrictEqual(b.foo);
-    b.foo[2].a = 2;
-    expect(o.foo[2]).toEqual(b.foo[2]);
-    b.foo.push(5);
-    expect(o.foo).toEqual(b.foo);
+    const o: any = merge(a, b, { deep: true, mergeArrays: true });
+    expect(o).not.toStrictEqual(b);
+    expect(o.foo).toEqual([1, 2, 2, 3, { a: 1 }]);
   });
 
-  it('should not clone array values if moveArrays callback return true', () => {
+  it('should merge unique array values if mergeArray option set tot "unique"', () => {
     const a: any = { foo: [1, 2] };
     const b: any = { foo: [2, 3, { a: 1 }] };
+    const o: any = merge(a, b, { deep: true, mergeArrays: 'unique' });
+    expect(o).not.toStrictEqual(b);
+    expect(o.foo).toEqual([1, 2, 3, { a: 1 }]);
+  });
+
+  it('should apply filter on target object', () => {
+    const a: any = { a: 1, b: 2 };
+    const b: any = { a: 2, c: false };
+    const o: any = merge(a, b, {
+      filter: v => typeof v !== 'boolean',
+    });
+    expect(o).toStrictEqual({
+      a: 2,
+      b: 2,
+    });
+  });
+
+  it('should perform deep filter', () => {
+    const a: any = { a: 1, b: '2' };
+    const b: any = { a: '1', c: { foo: 1 } };
     const o: any = merge(a, b, {
       deep: true,
-      moveArrays: k => k === 'foo',
+      filter: (_, { key }) => key !== 'foo',
     });
-    expect(o).toStrictEqual(b);
-    expect(o.foo).toStrictEqual(b.foo);
-    b.foo[2].a = 2;
-    expect(o.foo[2]).toEqual(b.foo[2]);
-    b.foo.push(5);
-    expect(o.foo).toEqual(b.foo);
+    expect(o).toStrictEqual({
+      a: '1',
+      b: '2',
+      c: {},
+    });
   });
 });
