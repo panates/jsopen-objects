@@ -1,7 +1,11 @@
 ## Changelog
 
-### [v1.6.3](https://github.com/panates/jsopen-objects/compare/v1.6.2...v1.6.3) - 
+### [v2.0.0](https://github.com/panates/jsopen-objects/compare/v1.6.3...v2.0.0) - 
 
-#### 🪲 Fixes
+#### 🚀 New Features
 
-- fix: merge fails on null fields @Eray Hanoğlu 
+- refactor: Refactored merge method. Stopping using function compilation. @Eray Hanoğlu 
+
+#### 🛠 Refactoring and Updates
+
+- refactor: Refactored merge method. Stopping using function compilation. @Eray Hanoğlu 
