@@ -3,31 +3,34 @@ import { isBuiltIn } from './type-guards.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-export function merge<A, B>(
-  target: A,
-  source: B,
-  options?: merge.Options,
-): A & B;
-export function merge<A, B, C>(
+export function merge<A extends object, B extends object, C extends object>(
   target: A,
   source: [B, C],
   options?: merge.Options,
 ): A & B & C;
-export function merge<A, B, C, D>(
-  target: A,
-  source: [B, C, D],
-  options?: merge.Options,
-): A & B & C & D;
-export function merge<A, B, C, D, E>(
-  target: A,
-  source: [B, C, D, E],
-  options?: merge.Options,
-): A & B & C & D & E;
+export function merge<
+  A extends object,
+  B extends object,
+  C extends object,
+  D extends object,
+>(target: A, source: [B, C, D], options?: merge.Options): A & B & C & D;
+export function merge<
+  A extends object,
+  B extends object,
+  C extends object,
+  D extends object,
+  E extends object,
+>(target: A, source: [B, C, D, E], options?: merge.Options): A & B & C & D & E;
 export function merge<A, B, C, D, F>(
   target: A,
   source: [B, C, D, F],
   options?: merge.Options,
 ): A & B & C & D & F;
+export function merge<A extends object, B extends object>(
+  target: A,
+  source: B,
+  options?: merge.Options,
+): A & B;
 export function merge(
   targetObject: any,
   sourceObject: any,
