@@ -3,10 +3,9 @@ import { expect } from 'expect';
 
 describe('merge', () => {
   it('should throw if target is not an object', () => {
+    // @ts-ignore
     expect(() => merge(undefined, {})).toThrow('must be an object');
-  });
-
-  it('should throw if source is not an object', () => {
+    // @ts-ignore
     expect(() => merge({}, 'string')).toThrow('must be an object');
   });
 
@@ -263,6 +262,7 @@ describe('merge', () => {
     b.d.x = 2;
     expect(o.c).toEqual(b.c);
     expect(o.d).toEqual(b.d);
+    expect(o.d).toBeInstanceOf(MyClass);
   });
 
   it('should deep merge object values to target', () => {

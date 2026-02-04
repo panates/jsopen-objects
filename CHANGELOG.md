@@ -1,7 +1,7 @@
 ## Changelog
 
-### [v2.0.2](https://github.com/panates/jsopen-objects/compare/v2.0.1...v2.0.2) - 
+### [v2.1.0](https://github.com/panates/jsopen-objects/compare/v2.0.2...v2.1.0) - 
 
-#### 🛠 Refactoring and Updates
+#### 🚀 New Features
 
-- refactor: Minor typing changes @Eray Hanoğlu 
+- feat: Added `updateErrorMessage` helper method @Eray Hanoğlu 
