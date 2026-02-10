@@ -110,8 +110,24 @@ export function merge(
       ) {
         continue;
       }
+      _goDeep = !!(
+        deep &&
+        typeof srcVal === 'object' &&
+        (!isBuiltIn(srcVal) || Array.isArray(srcVal))
+      );
+      if (_goDeep) {
+        if (deepFn)
+          _goDeep = deepFn(srcVal, {
+            key,
+            source,
+            target,
+            path: parentPath + (parentPath ? '.' : '') + String(key),
+          });
+        else
+          _goDeep = deepFull || isPlainObject(srcVal) || Array.isArray(srcVal);
+      }
 
-      if (keepExisting && hasOwnProperty.call(target, key)) {
+      if (!_goDeep && keepExisting && hasOwnProperty.call(target, key)) {
         if (!keepExistingFn) continue;
         if (
           keepExistingFn(srcVal, {
@@ -145,59 +161,42 @@ export function merge(
         continue;
       }
 
-      if (
-        deep &&
-        typeof srcVal === 'object' &&
-        (!isBuiltIn(srcVal) || Array.isArray(srcVal))
-      ) {
-        _goDeep =
-          (deepFn &&
-            deepFn(srcVal, {
-              key,
-              source,
-              target,
-              path: parentPath + (parentPath ? '.' : '') + String(key),
-            })) ||
-          (!deepFn &&
-            (deepFull || isPlainObject(srcVal) || Array.isArray(srcVal)));
-        if (_goDeep) {
-          /** Array */
-          if (Array.isArray(srcVal)) {
-            if (
-              Array.isArray(target[key]) &&
-              (mergeArrays ||
-                mergeArraysFn?.(srcVal, {
-                  key,
-                  source,
-                  target,
-                  path: parentPath + (parentPath ? '.' : '') + String(key),
-                }))
-            ) {
-              target[key] = _arrayClone(
-                target[key],
-                parentPath + (parentPath ? '.' : '') + String(key),
-              );
-            } else target[key] = [];
-
-            target[key].push(
-              ..._arrayClone(
-                srcVal,
-                parentPath + (parentPath ? '.' : '') + String(key),
-              ),
-            );
-            if (mergeArraysUnique)
-              target[key] = Array.from(new Set(target[key]));
-            continue;
-          } else {
-            /** Object */
-            if (!isObject(target[key])) target[key] = {};
-            _merge(
+      if (_goDeep) {
+        /** Array */
+        if (Array.isArray(srcVal)) {
+          if (
+            Array.isArray(target[key]) &&
+            (mergeArrays ||
+              mergeArraysFn?.(srcVal, {
+                key,
+                source,
+                target,
+                path: parentPath + (parentPath ? '.' : '') + String(key),
+              }))
+          ) {
+            target[key] = _arrayClone(
               target[key],
-              srcVal,
               parentPath + (parentPath ? '.' : '') + String(key),
             );
-            continue;
-          }
+          } else target[key] = [];
+
+          target[key].push(
+            ..._arrayClone(
+              srcVal,
+              parentPath + (parentPath ? '.' : '') + String(key),
+            ),
+          );
+          if (mergeArraysUnique) target[key] = Array.from(new Set(target[key]));
+          continue;
+        } else {
+          /** Object */
+          if (!isObject(target[key])) target[key] = {};
+          _merge(
+            target[key],
+            srcVal,
+            parentPath + (parentPath ? '.' : '') + String(key),
+          );
+          continue;
         }
       }
 
