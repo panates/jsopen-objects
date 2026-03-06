@@ -51,22 +51,22 @@ export function merge(
       '"target" argument must be an object or array of objects',
     );
   }
-  const keepExisting = options?.keepExisting;
-  const keepExistingFn =
+  const optsKeepExisting = !!options?.keepExisting;
+  const optsKeepExistingFn =
     typeof options?.keepExisting === 'function'
       ? options?.keepExisting
       : undefined;
-  const filterFn = options?.filter;
-  const ignoreUndefined = options?.ignoreUndefined ?? true;
-  const ignoreNulls = options?.ignoreNulls;
-  const deep = options?.deep;
-  const deepFull = deep === 'full';
-  const deepFn =
+  const optsFilterFn = options?.filter;
+  const optsIgnoreUndefined = options?.ignoreUndefined ?? true;
+  const optsIgnoreNulls = options?.ignoreNulls;
+  const optsDeep = options?.deep;
+  const optsDeepFull = optsDeep === 'full';
+  const optsDeepFn =
     typeof options?.deep === 'function' ? options?.deep : undefined;
-  const copyDescriptors = options?.copyDescriptors;
-  const mergeArrays = options?.mergeArrays;
-  const mergeArraysUnique = options?.mergeArrays === 'unique';
-  const mergeArraysFn =
+  const optsCopyDescriptors = options?.copyDescriptors;
+  const optsMergeArrays = !!options?.mergeArrays;
+  const optsMergeArraysUnique = options?.mergeArrays === 'unique';
+  const optsMergeArraysFn =
     typeof options?.mergeArrays === 'function'
       ? options?.mergeArrays
       : undefined;
@@ -79,7 +79,14 @@ export function merge(
     let key: string | symbol | number;
     let descriptor: PropertyDescriptor | undefined;
     let srcVal: any;
-    let _goDeep = false;
+    let trgVal: any;
+    let goDeep = false;
+    let srcIsPlainObject: boolean;
+    let srcIsArray: boolean;
+    let srcIsBuiltIn: boolean;
+    let trgIsArray: boolean;
+    let curPath: string = '';
+    let keepExisting = false;
     if (isPlainObject(target))
       Object.setPrototypeOf(target, Object.getPrototypeOf(source));
     const ignoreFn = options?.ignoreSource;
@@ -90,7 +97,7 @@ export function merge(
       /** Should not overwrite __proto__ and constructor properties */
       if (key === '__proto__' || key === 'constructor') continue;
 
-      if (copyDescriptors) {
+      if (optsCopyDescriptors) {
         descriptor = Object.getOwnPropertyDescriptor(source, key);
         if (descriptor?.get || descriptor?.set) {
           Object.defineProperty(target, key, descriptor);
@@ -99,7 +106,7 @@ export function merge(
       }
 
       srcVal = source[key];
-
+      /** Check if the property should be ignored */
       if (
         ignoreFn?.(srcVal, {
           key,
@@ -110,97 +117,107 @@ export function merge(
       ) {
         continue;
       }
-      _goDeep = !!(
-        deep &&
-        typeof srcVal === 'object' &&
-        (!isBuiltIn(srcVal) || Array.isArray(srcVal))
-      );
-      if (_goDeep) {
-        if (deepFn)
-          _goDeep = deepFn(srcVal, {
-            key,
-            source,
-            target,
-            path: parentPath + (parentPath ? '.' : '') + String(key),
-          });
-        else
-          _goDeep = deepFull || isPlainObject(srcVal) || Array.isArray(srcVal);
-      }
 
-      if (!_goDeep && keepExisting && hasOwnProperty.call(target, key)) {
-        if (!keepExistingFn) continue;
-        if (
-          keepExistingFn(srcVal, {
-            key,
-            source,
-            target,
-            path: parentPath + (parentPath ? '.' : '') + String(key),
-          })
-        ) {
-          continue;
-        }
-      }
+      srcIsPlainObject = isPlainObject(srcVal);
+      srcIsArray = Array.isArray(srcVal);
+      srcIsBuiltIn = isBuiltIn(srcVal) && !srcIsArray;
+      trgVal = target[key];
+      trgIsArray = Array.isArray(trgVal);
+      curPath = parentPath + (parentPath ? '.' : '') + String(key);
 
       if (
-        filterFn &&
-        !filterFn(srcVal, {
+        optsFilterFn &&
+        !optsFilterFn(srcVal, {
           key,
           source,
           target,
-          path: parentPath + (parentPath ? '.' : '') + String(key),
+          path: curPath,
         })
       ) {
         continue;
       }
 
-      if (ignoreUndefined && srcVal === undefined) {
+      /** Determine if we should go deeper into the object */
+      goDeep = !!(
+        optsDeep &&
+        !srcIsBuiltIn &&
+        /** Source value should be an object */
+        typeof srcVal === 'object' &&
+        /** deep full or plain object */
+        (optsDeepFull || srcIsPlainObject || srcIsArray)
+      );
+
+      keepExisting =
+        optsKeepExisting &&
+        hasOwnProperty.call(target, key) &&
+        (!optsKeepExistingFn ||
+          optsKeepExistingFn(srcVal, {
+            key,
+            source,
+            target,
+            path: curPath,
+          }));
+
+      if (goDeep && optsDeepFn) {
+        goDeep = optsDeepFn(srcVal, {
+          key,
+          source,
+          target,
+          path: curPath,
+        });
+      }
+
+      if (optsIgnoreUndefined && srcVal === undefined) {
         continue;
       }
 
-      if (ignoreNulls && srcVal === null) {
+      if (optsIgnoreNulls && srcVal === null) {
         continue;
       }
 
-      if (_goDeep) {
+      if (goDeep) {
+        // if (keepExisting) &&
         /** Array */
-        if (Array.isArray(srcVal)) {
-          if (
-            Array.isArray(target[key]) &&
-            (mergeArrays ||
-              mergeArraysFn?.(srcVal, {
-                key,
-                source,
-                target,
-                path: parentPath + (parentPath ? '.' : '') + String(key),
-              }))
-          ) {
-            target[key] = _arrayClone(
-              target[key],
-              parentPath + (parentPath ? '.' : '') + String(key),
-            );
-          } else target[key] = [];
-
-          target[key].push(
-            ..._arrayClone(
-              srcVal,
-              parentPath + (parentPath ? '.' : '') + String(key),
-            ),
-          );
-          if (mergeArraysUnique) target[key] = Array.from(new Set(target[key]));
-          continue;
+        if (srcIsArray) {
+          /** If the target value is not an array, we do not need a deep merge operation */
+          if (!trgIsArray) {
+            if (keepExisting) continue;
+            srcVal = _arrayClone(srcVal, curPath);
+          } else {
+            srcVal = _arrayClone(srcVal, curPath);
+            if (
+              optsMergeArrays &&
+              (!optsMergeArraysFn ||
+                optsMergeArraysFn?.(srcVal, {
+                  key,
+                  source,
+                  target,
+                  path: curPath,
+                }))
+            ) {
+              srcVal = [...trgVal, ...srcVal];
+              if (optsMergeArraysUnique)
+                target[key] = Array.from(new Set(srcVal));
+              else target[key] = srcVal;
+              continue;
+            } else {
+              if (optsMergeArraysUnique) srcVal = Array.from(new Set(srcVal));
+            }
+          }
         } else {
           /** Object */
-          if (!isObject(target[key])) target[key] = {};
-          _merge(
-            target[key],
-            srcVal,
-            parentPath + (parentPath ? '.' : '') + String(key),
-          );
+          if (!isObject(target[key])) {
+            if (keepExisting) continue;
+            target[key] = {};
+          }
+          _merge(target[key], srcVal, curPath);
           continue;
         }
       }
 
-      if (copyDescriptors) {
+      if (keepExisting) continue;
+
+      if (optsCopyDescriptors) {
         descriptor = { ...Object.getOwnPropertyDescriptor(source, key) };
         descriptor.value = srcVal;
         Object.defineProperty(target, key, descriptor);
@@ -244,8 +261,8 @@ export namespace merge {
     /**
      * Optional variable that determines the depth of an operation or inclusion behavior.
      *
-     * - If set to `true`, it enables a deep operation for only native js objects, excluding classes.
-     * - If set to `'full'`, it enables a deep operation for all objects, including classes, excluding built-in objects
+     * - If set to `true`, it enables a deep operation for only plain objects and arrays. Non-plain objects (class instances) are assigned by reference.
+     * - If set to `'full'`, it enables a deep operation for all objects, including classes, excluding built-in objects.
      * - If assigned a `NodeCallback` function, it provides a custom callback mechanism for handling the operation.
      *
      * This variable can be used to define the level of depth or customization for a given process.
