@@ -7,6 +7,24 @@
 
 A 'swiss army knife' solution for working with javascript objects.
 
+## Functions
+
+### [merge](docs/merge.md)
+Is a powerful, flexible tool for merging objects, arrays, and their nested properties.
+
+### [clone / deepClone](docs/clone.md)
+Easy ways to create shallow or deep copies of objects and arrays.
+
+### [omit / omitUndefined / omitNull / omitNullish](docs/omit.md)
+Easily exclude specific keys or nullish values from objects.
+
+### [updateErrorMessage](docs/update-error-message.md)
+Update an Error object's message while correctly refreshing the stack trace.
+
+### [Utilities](docs/utils.md)
+Various utility functions for object and type checking.
+
+
 ## Installation
 
 `$ npm install @jsopen/objects`

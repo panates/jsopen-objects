@@ -202,6 +202,13 @@ describe('merge', () => {
     });
   });
 
+  it('should ignore existing deep properties if keepExisting set true', () => {
+    const a: any = { x: { a: 1, b: [1, 2, 3] } };
+    const b: any = { x: { a: 2, b: { c: 1 } } };
+    const o: any = merge(a, b, { keepExisting: true, deep: 'full' });
+    expect(o).toStrictEqual({ x: { a: 1, b: [1, 2, 3] } });
+  });
+
   it('should do nothing if source = target', () => {
     const a = {};
     const o = merge(a, a);
@@ -291,7 +298,7 @@ describe('merge', () => {
     expect(o.b.x).toStrictEqual(2);
   });
 
-  it('should  deep merge non plain objects if "deep" option set "full"', () => {
+  it('should deep merge non plain objects if "deep" option set "full"', () => {
     class MyClass {
       x = 1;
     }
@@ -335,7 +342,7 @@ describe('merge', () => {
     expect(o.foo === b.foo).toBeTruthy();
   });
 
-  it('should clone array values if deep option set', () => {
+  it('should clone copy array values if deep option set', () => {
     const a: any = { foo: [1, 2] };
     const b: any = { foo: [2, 3, { a: 1 }] };
     const o: any = merge(a, b, { deep: true });
