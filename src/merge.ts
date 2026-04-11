@@ -80,17 +80,17 @@ export function merge(
     let descriptor: PropertyDescriptor | undefined;
     let srcVal: any;
     let trgVal: any;
-    let goDeep = false;
+    let goDeep: boolean;
     let srcIsPlainObject: boolean;
     let srcIsArray: boolean;
     let srcIsBuiltIn: boolean;
     let trgIsArray: boolean;
-    let curPath: string = '';
-    let keepExisting = false;
+    let curPath: string;
+    let keepExisting: boolean;
     if (isPlainObject(target))
       Object.setPrototypeOf(target, Object.getPrototypeOf(source));
     const ignoreFn = options?.ignoreSource;
-    let i = 0;
+    let i: number;
     const len = keys.length;
     for (i = 0; i < len; i++) {
       key = keys[i];
