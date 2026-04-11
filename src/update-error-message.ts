@@ -5,23 +5,6 @@
  */
 export function updateErrorMessage(err: Error, newMessage: string) {
   err.message = String(newMessage);
-  /** V8 */
-  if (typeof Error.captureStackTrace === 'function') {
-    Error.captureStackTrace(err);
-    return;
-  }
-  /** Other engines */
-  return updateErrorMessageFallback(err, newMessage);
-}
-
-/**
- * Updates the error message and stack trace at sametime.
- * @param err
- * @param newMessage
- */
-export function updateErrorMessageFallback(err: Error, newMessage: string) {
-  err.message = String(newMessage);
-  /** Other engines */
   const stack = typeof err.stack === 'string' ? err.stack : null;
   if (!stack) return err;
   const name = err.name || 'Error';
