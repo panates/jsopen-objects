@@ -142,6 +142,7 @@ export function merge(
         optsDeep &&
         !srcIsBuiltIn &&
         /** Source value should be an object */
+        srcVal &&
         typeof srcVal === 'object' &&
         /** deep full or plain object */
         (optsDeepFull || srcIsPlainObject || srcIsArray)
