@@ -1,4 +1,4 @@
-import { StrictOmit } from 'ts-gems';
+import type { StrictOmit } from 'ts-gems';
 import { merge } from './merge.js';
 
 export function clone<T extends object>(obj: T, options?: merge.Options): T {

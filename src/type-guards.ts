@@ -1,4 +1,4 @@
-import { Type } from 'ts-gems';
+import type { Type } from 'ts-gems';
 
 export function isBuiltIn(v: any): boolean {
   return (
