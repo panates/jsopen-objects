@@ -40,13 +40,11 @@ export function merge(
     throw new TypeError('"target" argument must be an object');
   }
   if (sourceObject == null) return targetObject;
-  if (
-    !(
-      isObject(sourceObject) ||
-      typeof sourceObject === 'function' ||
-      Array.isArray(sourceObject)
-    )
-  ) {
+  if (!(
+    isObject(sourceObject) ||
+    typeof sourceObject === 'function' ||
+    Array.isArray(sourceObject)
+  )) {
     throw new TypeError(
       '"target" argument must be an object or array of objects',
     );
