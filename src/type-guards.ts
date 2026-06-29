@@ -38,12 +38,14 @@ export function isConstructor(fn: any): fn is Type {
   );
 }
 
-export function isIterable<T = unknown>(x: any): x is Iterable<T> {
+export function isIterable<T = unknown>(
+  x: any,
+): x is Iterable<T> | IterableIterator<T> {
   return Symbol.iterator in x;
 }
 
 export function isAsyncIterable<T = unknown>(
   x: any,
-): x is AsyncIterableIterator<T> {
+): x is AsyncIterable<T> | AsyncIterableIterator<T> {
   return Symbol.asyncIterator in x;
 }
