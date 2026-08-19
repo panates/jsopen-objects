@@ -19,4 +19,15 @@ describe('clone', () => {
     a.foo.push(5);
     expect(o.foo).not.toEqual(a.foo);
   });
+
+  it('should clone array values and extra properties', () => {
+    const extra = Symbol('extra');
+    const foo = [2, 3];
+    foo[extra] = 'abc';
+    foo.push(4);
+    const a: any = { foo };
+    const o: any = clone(a);
+    expect(JSON.stringify(o)).toStrictEqual(JSON.stringify(a));
+    expect(o.foo[extra]).toStrictEqual('abc');
+  });
 });
