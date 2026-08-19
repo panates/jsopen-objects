@@ -228,12 +228,29 @@ export function merge(
   };
 
   const _arrayClone = (arr: any[], curPath: string): any[] => {
-    return arr.map((x: any, index) => {
+    const out = arr.map((x: any, index) => {
       if (Array.isArray(x)) return _arrayClone(x, curPath + '[' + index + ']');
       if (typeof x === 'object' && !isBuiltIn(x))
         return _merge({}, x, curPath + '[' + index + ']');
       return x;
     });
+    const keys = Reflect.ownKeys(arr);
+    let extraKeys: any[] | undefined;
+    let k: any;
+    for (let i = keys.length - 1; i >= 0; i--) {
+      k = keys[i];
+      if (k === 'length' || (typeof k === 'string' && NUMBER_PATTERN.test(k)))
+        break;
+      extraKeys = extraKeys || [];
+      extraKeys.unshift(k);
+    }
+    if (extraKeys) {
+      for (k of extraKeys) {
+        const desc = Object.getOwnPropertyDescriptor(arr, k);
+        if (desc) Object.defineProperty(out, k, desc);
+      }
+    }
+    return out;
   };
 
   const sources = Array.isArray(sourceObject) ? sourceObject : [sourceObject];
@@ -242,6 +259,8 @@ export function merge(
   }
   return targetObject;
 }
+
+const NUMBER_PATTERN = /^\d+$/;
 
 /**
  * @namespace
