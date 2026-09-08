@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import type { Type } from 'ts-gems';
 
 export function isBuiltIn(v: any): boolean {
