@@ -1,10 +1,12 @@
 node_modules
 /build
+*.tsbuildinfo
+graphify-out
+.claude
 
 # environment variables
 .env
 .development.env
-*.tsbuildinfo
 
 # Logs
 logs

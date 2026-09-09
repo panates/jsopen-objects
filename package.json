@@ -46,7 +46,8 @@
     "precitest": "rimraf coverage",
     "citest": "c8 mocha",
     "qc": "npm run lint && npm run check",
-    "version": "auto-changelog -p --starting-version v4.0.0 && git add CHANGELOG.md"
+    "version": "auto-changelog -p --starting-version v4.0.0 && git add CHANGELOG.md",
+    "graph": "graphify update ."
   },
   "type": "module",
   "module": "./index.js",
