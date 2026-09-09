@@ -30,7 +30,7 @@ export function isBuiltIn(v: any): boolean {
 }
 
 export function isConstructor(fn: any): fn is Type {
-  return (
+  return !!(
     typeof fn === 'function' &&
     fn.prototype &&
     fn.prototype.constructor === fn &&

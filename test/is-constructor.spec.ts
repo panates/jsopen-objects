@@ -15,4 +15,8 @@ describe('isConstructor', () => {
     expect(isConstructor('')).not.toBeTruthy();
     expect(isConstructor(new Date())).not.toBeTruthy();
   });
+
+  it('Should return a strict boolean, even for arrow functions', () => {
+    expect(isConstructor(() => {})).toBe(false);
+  });
 });

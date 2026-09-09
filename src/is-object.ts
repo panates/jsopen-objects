@@ -1,7 +1,7 @@
 const objCtorStr = Function.prototype.toString.call(Object);
 
 export function isObject(v: any): boolean {
-  return v && typeof v === 'object' && !Array.isArray(v);
+  return !!v && typeof v === 'object' && !Array.isArray(v);
 }
 
 export function isPlainObject(obj: any): boolean {
