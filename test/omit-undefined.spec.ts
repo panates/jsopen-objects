@@ -36,4 +36,11 @@ describe('omitUndefined', () => {
       b: [{ a: 1 }],
     });
   });
+
+  it('should omit undefined fields from objects within a top-level array', () => {
+    const a: any = [{ a: 1, b: undefined }, { c: 2 }];
+    const x = omitUndefined(a, true);
+    expect(Array.isArray(x)).toBeTruthy();
+    expect(x).toStrictEqual([{ a: 1 }, { c: 2 }]);
+  });
 });

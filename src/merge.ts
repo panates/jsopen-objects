@@ -36,7 +36,11 @@ export function merge(
   sourceObject: any,
   options?: merge.Options,
 ): any {
-  if (!(isObject(targetObject) || typeof targetObject === 'function')) {
+  if (!(
+    isObject(targetObject) ||
+    typeof targetObject === 'function' ||
+    Array.isArray(targetObject)
+  )) {
     throw new TypeError('"target" argument must be an object');
   }
   if (sourceObject == null) return targetObject;
@@ -46,7 +50,7 @@ export function merge(
     Array.isArray(sourceObject)
   )) {
     throw new TypeError(
-      '"target" argument must be an object or array of objects',
+      '"source" argument must be an object or array of objects',
     );
   }
   const optsKeepExisting = !!options?.keepExisting;
@@ -70,6 +74,21 @@ export function merge(
       : undefined;
 
   const _merge = (target: any, source: any, parentPath: string = '') => {
+    /** A source that is itself an array (not a property holding an array)
+     * must be cloned/copied as an array value, not unpacked or treated as a
+     * plain object (which would drop it to `{0: ..., 1: ..., length: ...}`). */
+    if (Array.isArray(source)) {
+      const isDeepArr = optsDeep === true || optsDeepFull;
+      const src2 = isDeepArr ? _arrayClone(source, parentPath) : source;
+      const arrKeys: (string | symbol)[] = Object.getOwnPropertyNames(src2);
+      if (options?.symbolKeys ?? true)
+        arrKeys.push(...Object.getOwnPropertySymbols(src2));
+      for (const k of arrKeys) {
+        if (k === 'length') continue;
+        (target as any)[k] = (src2 as any)[k];
+      }
+      return target;
+    }
     if (!isObject(source)) return;
     const keys: (string | symbol)[] = Object.getOwnPropertyNames(source);
     if (options?.symbolKeys ?? true)
@@ -253,11 +272,34 @@ export function merge(
     return out;
   };
 
-  const sources = Array.isArray(sourceObject) ? sourceObject : [sourceObject];
+  const noArrayUnpack = !!(options as any)?.__noArrayUnpack;
+  const sources =
+    !noArrayUnpack && Array.isArray(sourceObject)
+      ? sourceObject
+      : [sourceObject];
   for (const src of sources) {
     _merge(targetObject, src);
   }
   return targetObject;
+}
+
+/**
+ * Merges a single `source` value into `target`, treating `source` as one
+ * value even when it is an array — unlike `merge()`, it never unpacks a
+ * top-level array source into multiple sequential sources.
+ * Used internally by `clone()` and the `omit*()` helpers, whose `obj`
+ * argument is always a single value that may itself be an array.
+ * @internal
+ */
+export function mergeSingle<T extends object>(
+  target: T,
+  source: any,
+  options?: merge.Options,
+): T {
+  return merge(target, source, {
+    ...options,
+    __noArrayUnpack: true,
+  } as any);
 }
 
 const NUMBER_PATTERN = /^\d+$/;

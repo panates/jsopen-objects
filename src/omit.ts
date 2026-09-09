@@ -8,14 +8,15 @@ import type {
   OmitUndefined,
   UnNullish,
 } from 'ts-gems';
-import { merge } from './merge.js';
+import { mergeSingle } from './merge.js';
 
 export function omit<T extends object, K extends keyof T>(
   obj: T,
   keys: K[],
 ): Omit<T, K> {
   const keysSet = new Set<any>(keys);
-  return merge({}, obj, {
+  const target = (Array.isArray(obj) ? [] : {}) as any;
+  return mergeSingle(target, obj, {
     deep: false,
     filter(_, { key }) {
       return !keysSet.has(key);
@@ -40,7 +41,8 @@ export function omitUndefined<T extends object>(
   obj: T,
   deep?: boolean | 'full',
 ) {
-  return merge({}, obj, {
+  const target = (Array.isArray(obj) ? [] : {}) as any;
+  return mergeSingle(target, obj, {
     deep,
     ignoreUndefined: true,
     copyDescriptors: true,
@@ -61,7 +63,8 @@ export function omitNull<T extends object>(
 ): OmitTypes<T, null>;
 export function omitNull<T extends object>(obj: T): OmitTypes<T, null>;
 export function omitNull<T extends object>(obj: T, deep?: boolean | 'full') {
-  return merge({}, obj, {
+  const target = (Array.isArray(obj) ? [] : {}) as any;
+  return mergeSingle(target, obj, {
     deep,
     ignoreNulls: true,
     ignoreUndefined: false,
@@ -83,7 +86,8 @@ export function omitNullish<T extends object>(
 ): UnNullish<T>;
 export function omitNullish<T extends object>(obj: T): UnNullish<T>;
 export function omitNullish<T extends object>(obj: T, deep?: boolean | 'full') {
-  return merge({}, obj, {
+  const target = (Array.isArray(obj) ? [] : {}) as any;
+  return mergeSingle(target, obj, {
     deep,
     ignoreNulls: true,
     ignoreUndefined: true,

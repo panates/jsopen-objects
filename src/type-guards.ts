@@ -42,11 +42,11 @@ export function isConstructor(fn: any): fn is Type {
 export function isIterable<T = unknown>(
   x: any,
 ): x is Iterable<T> | IterableIterator<T> {
-  return Symbol.iterator in x;
+  return x != null && typeof x[Symbol.iterator] === 'function';
 }
 
 export function isAsyncIterable<T = unknown>(
   x: any,
 ): x is AsyncIterable<T> | AsyncIterableIterator<T> {
-  return Symbol.asyncIterator in x;
+  return x != null && typeof x[Symbol.asyncIterator] === 'function';
 }

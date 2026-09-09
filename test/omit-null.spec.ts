@@ -36,4 +36,11 @@ describe('omitNull', () => {
       b: [{ a: 1 }],
     });
   });
+
+  it('should omit null fields from objects within a top-level array', () => {
+    const a: any = [{ a: 1, b: null }, { c: 2 }];
+    const x = omitNull(a, true);
+    expect(Array.isArray(x)).toBeTruthy();
+    expect(x).toStrictEqual([{ a: 1 }, { c: 2 }]);
+  });
 });

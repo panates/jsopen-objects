@@ -1,4 +1,4 @@
-import { clone } from '@jsopen/objects';
+import { clone, deepClone } from '@jsopen/objects';
 import { expect } from 'expect';
 
 describe('clone', () => {
@@ -29,5 +29,38 @@ describe('clone', () => {
     const o: any = clone(a);
     expect(JSON.stringify(o)).toStrictEqual(JSON.stringify(a));
     expect(o.foo[extra]).toStrictEqual('abc');
+  });
+
+  it('should clone a top-level array', () => {
+    const a = [1, 2, 3];
+    const o = clone(a);
+    expect(Array.isArray(o)).toBeTruthy();
+    expect(o).toStrictEqual(a);
+    expect(o).not.toBe(a);
+  });
+
+  it('should deep clone a top-level array of objects', () => {
+    const a = [{ x: 1 }, { y: 2 }];
+    const o = clone(a);
+    expect(o).toStrictEqual(a);
+    o[0].x = 99;
+    expect(a[0].x).toStrictEqual(1);
+  });
+
+  it('should deep clone a top-level array with deepClone', () => {
+    const a = [{ x: { y: 1 } }];
+    const o = deepClone(a);
+    expect(o).toStrictEqual(a);
+    o[0].x.y = 99;
+    expect(a[0].x.y).toStrictEqual(1);
+  });
+
+  it('should preserve extra properties on a cloned top-level array', () => {
+    const a: any = [1, 2];
+    a.extra = 'abc';
+    const o: any = clone(a);
+    expect(Array.isArray(o)).toBeTruthy();
+    expect(JSON.stringify(o)).toStrictEqual(JSON.stringify([1, 2]));
+    expect(o.extra).toStrictEqual('abc');
   });
 });

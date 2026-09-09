@@ -1,8 +1,9 @@
 import type { StrictOmit } from 'ts-gems';
-import { merge } from './merge.js';
+import { merge, mergeSingle } from './merge.js';
 
 export function clone<T extends object>(obj: T, options?: merge.Options): T {
-  return merge({} as T, obj, {
+  const target = (Array.isArray(obj) ? [] : {}) as T;
+  return mergeSingle(target, obj, {
     ...options,
     deep: options?.deep ?? true,
   });
