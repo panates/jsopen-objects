@@ -67,3 +67,15 @@ const result = omitNullish(original, true);
 ## Options
 
 These functions use standard [`merge`](merge.md) options internally. `omitUndefined`, `omitNull`, and `omitNullish` preserve property descriptors by default (`copyDescriptors: true`).
+
+## Top-Level Arrays
+
+`obj` may also be an array — each function then returns a new array of the same shape, with
+the same filtering rules applied to any plain-object elements it contains.
+
+```typescript
+import { omitUndefined } from '@jsopen/objects';
+
+const result = omitUndefined([{ a: 1, b: undefined }, { c: 2 }], true);
+// result is [{ a: 1 }, { c: 2 }]
+```

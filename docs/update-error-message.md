@@ -6,10 +6,15 @@ The `updateErrorMessage` function updates an `Error` object's message and refres
 
 ### `updateErrorMessage(err, newMessage)`
 
-Updates the message of the error and captures a new stack trace.
+Updates the message of the error and rewrites the header of its stack trace to match, on every
+engine.
 
-- **V8 Engines (Node.js, Chrome)**: Uses `Error.captureStackTrace` for optimal performance and accuracy.
-- **Other Engines**: Provides a fallback mechanism that manually reconstructs the stack trace with the new message while preserving original stack frames.
+- Sets `err.message` to the new message.
+- Locates the first stack-frame line (matching `at ...`) in `err.stack` and replaces everything
+  before it — the old `"Name: message"` header — with `"${err.name}: ${newMessage}"`, keeping
+  every original frame line untouched.
+- If `err.stack` isn't a string, or no frame line can be found, it falls back to just replacing
+  the first line(s) with the new message.
 
 ```typescript
 import { updateErrorMessage } from '@jsopen/objects';
