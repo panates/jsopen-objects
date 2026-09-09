@@ -1,8 +1,8 @@
 <!-- docs-baseline
-git-commit: 3ff19cb5c3f5c922e4069498a0c29d9a0c364748
+git-commit: c5b56306cce2e868526467f99e1f5e685acf8bcc
 package-version: 2.3.1
 date: 2026-09-09
-verified-against: git diff 3ff19cb5c3f5c922e4069498a0c29d9a0c364748..HEAD -- src/
+verified-against: git diff c5b56306cce2e868526467f99e1f5e685acf8bcc..HEAD -- src/
 -->
 
 # API Reference
