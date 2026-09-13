@@ -5,12 +5,54 @@
 [![CI Tests][ci-test-image]][ci-test-url]
 [![Test Coverage][coveralls-image]][coveralls-url]
 
-A 'swiss army knife' solution for working with javascript objects.
+A 'swiss army knife' solution for working with JavaScript objects and arrays — deep merging,
+cloning, omitting keys/nullish values, and a set of dependency-free type guards, all in one
+small, fully-typed package.
 
-## Functions
+## Features
+
+- **`merge`** — deep or shallow merging of objects/arrays, multiple sources, array merge
+  strategies (append/unique), property-descriptor cloning, custom filters, and built-in
+  prototype-pollution protection.
+- **`clone` / `deepClone`** — copy objects and arrays (including class instances with
+  `deepClone`), with full support for top-level arrays as the value being cloned.
+- **`omit` / `omitUndefined` / `omitNull` / `omitNullish`** — drop specific keys or
+  `null`/`undefined` values, shallow or deep, from objects or arrays.
+- **Type guards** — `isObject`, `isPlainObject`, `isBuiltIn`, `isConstructor`, `isIterable`,
+  `isAsyncIterable` — none of them throw on unexpected input.
+- **`updateErrorMessage`** — change an `Error`'s message and keep its stack trace header
+  consistent, without losing the original stack frames.
+- Zero runtime dependencies, ESM-only, written in TypeScript.
+
+## Quick Start
+
+```typescript
+import { merge, clone, deepClone, omit, omitUndefined } from '@jsopen/objects';
+
+// Deep merge
+merge({ a: 1 }, { b: 2 }, { deep: true });
+// => { a: 1, b: 2 }
+
+// Clone (objects or top-level arrays, deeply by default)
+clone({ a: 1, b: { c: 2 } });
+clone([1, 2, { x: 1 }]);
+
+// Deep-clone including class instances
+class Point { constructor(public x: number, public y: number) {} }
+deepClone({ point: new Point(1, 2) });
+
+// Exclude keys / nullish values
+omit({ a: 1, b: 2, c: 3 }, ['b']);          // => { a: 1, c: 3 }
+omitUndefined({ a: 1, b: undefined }, true); // => { a: 1 }
+```
+
+## Documentation
+
+See the [**Full API Reference**](docs/api.md) for every function, option, and edge case, or
+jump to a focused guide:
 
 ### [merge](docs/merge.md)
-Is a powerful, flexible tool for merging objects, arrays, and their nested properties.
+A powerful, flexible tool for merging objects, arrays, and their nested properties.
 
 ### [clone / deepClone](docs/clone.md)
 Easy ways to create shallow or deep copies of objects and arrays.

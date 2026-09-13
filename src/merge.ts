@@ -3,17 +3,41 @@ import { isBuiltIn } from './type-guards.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+/**
+ * Merges two sources into `target`, one after another (later sources take
+ * precedence). See the general {@link merge} overload below for full details.
+ * @param target - Object properties are copied into; mutated in place.
+ * @param source - A tuple of sources, merged left to right.
+ * @param options - See {@link merge.Options}.
+ * @returns `target`.
+ */
 export function merge<A extends object, B extends object, C extends object>(
   target: A,
   source: [B, C],
   options?: merge.Options,
 ): A & B & C;
+/**
+ * Merges three sources into `target`, one after another (later sources
+ * take precedence). See the general {@link merge} overload below for full details.
+ * @param target - Object properties are copied into; mutated in place.
+ * @param source - A tuple of sources, merged left to right.
+ * @param options - See {@link merge.Options}.
+ * @returns `target`.
+ */
 export function merge<
   A extends object,
   B extends object,
   C extends object,
   D extends object,
 >(target: A, source: [B, C, D], options?: merge.Options): A & B & C & D;
+/**
+ * Merges four sources into `target`, one after another (later sources take
+ * precedence). See the general {@link merge} overload below for full details.
+ * @param target - Object properties are copied into; mutated in place.
+ * @param source - A tuple of sources, merged left to right.
+ * @param options - See {@link merge.Options}.
+ * @returns `target`.
+ */
 export function merge<
   A extends object,
   B extends object,
@@ -21,11 +45,42 @@ export function merge<
   D extends object,
   E extends object,
 >(target: A, source: [B, C, D, E], options?: merge.Options): A & B & C & D & E;
+/**
+ * Merges four sources into `target`, one after another (later sources take
+ * precedence). See the general {@link merge} overload below for full details.
+ * @param target - Object properties are copied into; mutated in place.
+ * @param source - A tuple of sources, merged left to right.
+ * @param options - See {@link merge.Options}.
+ * @returns `target`.
+ */
 export function merge<A, B, C, D, F>(
   target: A,
   source: [B, C, D, F],
   options?: merge.Options,
 ): A & B & C & D & F;
+/**
+ * Merges the enumerable own properties of `source` into `target` and
+ * returns `target`.
+ *
+ * If `source` is an array, it is treated as **multiple sources** to merge
+ * into `target` one after another — use {@link clone} if you need to copy
+ * an array *value* itself rather than merge a list of sources.
+ * If `source` is `null` or `undefined`, this is a no-op.
+ *
+ * @param target - The object (or array) properties are copied into. Mutated in place.
+ * @param source - The value to copy from, or an array of sources merged sequentially.
+ * @param options - See {@link merge.Options}.
+ * @returns `target`, now containing the merged properties.
+ * @throws {TypeError} If `target` is not an object, function, or array.
+ * @throws {TypeError} If `source` is neither nullish, an object, a function, nor an array.
+ * @example
+ * const target = { a: 1, b: 2 };
+ * merge(target, { b: 3, c: 4 });
+ * // target is now: { a: 1, b: 3, c: 4 }
+ *
+ * merge({ a: 1 }, [{ b: 2 }, { c: 3 }]);
+ * // => { a: 1, b: 2, c: 3 }
+ */
 export function merge<A extends object, B extends object>(
   target: A,
   source: B,
@@ -36,7 +91,11 @@ export function merge(
   sourceObject: any,
   options?: merge.Options,
 ): any {
-  if (!(isObject(targetObject) || typeof targetObject === 'function')) {
+  if (!(
+    isObject(targetObject) ||
+    typeof targetObject === 'function' ||
+    Array.isArray(targetObject)
+  )) {
     throw new TypeError('"target" argument must be an object');
   }
   if (sourceObject == null) return targetObject;
@@ -46,7 +105,7 @@ export function merge(
     Array.isArray(sourceObject)
   )) {
     throw new TypeError(
-      '"target" argument must be an object or array of objects',
+      '"source" argument must be an object or array of objects',
     );
   }
   const optsKeepExisting = !!options?.keepExisting;
@@ -70,6 +129,21 @@ export function merge(
       : undefined;
 
   const _merge = (target: any, source: any, parentPath: string = '') => {
+    /** A source that is itself an array (not a property holding an array)
+     * must be cloned/copied as an array value, not unpacked or treated as a
+     * plain object (which would drop it to `{0: ..., 1: ..., length: ...}`). */
+    if (Array.isArray(source)) {
+      const isDeepArr = optsDeep === true || optsDeepFull;
+      const src2 = isDeepArr ? _arrayClone(source, parentPath) : source;
+      const arrKeys: (string | symbol)[] = Object.getOwnPropertyNames(src2);
+      if (options?.symbolKeys ?? true)
+        arrKeys.push(...Object.getOwnPropertySymbols(src2));
+      for (const k of arrKeys) {
+        if (k === 'length') continue;
+        (target as any)[k] = (src2 as any)[k];
+      }
+      return target;
+    }
     if (!isObject(source)) return;
     const keys: (string | symbol)[] = Object.getOwnPropertyNames(source);
     if (options?.symbolKeys ?? true)
@@ -253,35 +327,72 @@ export function merge(
     return out;
   };
 
-  const sources = Array.isArray(sourceObject) ? sourceObject : [sourceObject];
+  const noArrayUnpack = !!(options as any)?.__noArrayUnpack;
+  const sources =
+    !noArrayUnpack && Array.isArray(sourceObject)
+      ? sourceObject
+      : [sourceObject];
   for (const src of sources) {
     _merge(targetObject, src);
   }
   return targetObject;
 }
 
+/**
+ * Merges a single `source` value into `target`, treating `source` as one
+ * value even when it is an array — unlike `merge()`, it never unpacks a
+ * top-level array source into multiple sequential sources.
+ * Used internally by `clone()` and the `omit*()` helpers, whose `obj`
+ * argument is always a single value that may itself be an array.
+ * @internal
+ */
+export function mergeSingle<T extends object>(
+  target: T,
+  source: any,
+  options?: merge.Options,
+): T {
+  return merge(target, source, {
+    ...options,
+    __noArrayUnpack: true,
+  } as any);
+}
+
 const NUMBER_PATTERN = /^\d+$/;
 
 /**
+ * Types used by {@link merge}'s options and callbacks — also reused by
+ * {@link clone}, {@link deepClone}, and the `omit*` helpers.
  * @namespace
  */
 export namespace merge {
+  /**
+   * A callback used by several {@link Options} to decide, per property,
+   * whether to include it, recurse into it, or keep merging it. Return
+   * `true` to proceed (go deep / keep the value / merge arrays); return
+   * `false` to skip.
+   */
   export type CallbackFn = (value: any, ctx: CallbackContext) => boolean;
 
+  /** Context passed to a {@link CallbackFn} for the property currently being processed. */
   export interface CallbackContext {
+    /** The source object (or array) the property belongs to. */
     source: any;
+    /** The target object (or array) the property is being merged into. */
     target: any;
+    /** The property key being processed. */
     key: string | symbol | number;
+    /** Dot/bracket-notation path of the property, e.g. `"user.tags[0]"`. */
     path: string;
   }
 
+  /** Options accepted by {@link merge}, {@link clone}, {@link deepClone}, and the `omit*` helpers. */
   export interface Options {
     /**
      * Optional variable that determines the depth of an operation or inclusion behavior.
      *
      * - If set to `true`, it enables a deep operation for only plain objects and arrays. Non-plain objects (class instances) are assigned by reference.
      * - If set to `'full'`, it enables a deep operation for all objects, including classes, excluding built-in objects.
-     * - If assigned a `NodeCallback` function, it provides a custom callback mechanism for handling the operation.
+     * - If assigned a `CallbackFn`, it provides a custom callback mechanism for handling the operation.
      *
      * This variable can be used to define the level of depth or customization for a given process.
      * @default false

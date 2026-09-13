@@ -9,6 +9,16 @@ describe('merge', () => {
     expect(() => merge({}, 'string')).toThrow('must be an object');
   });
 
+  it('should mention "source" (not "target") when source is invalid', () => {
+    // @ts-ignore
+    expect(() => merge({}, 'string')).toThrow('"source" argument');
+  });
+
+  it('should accept an array as a valid target', () => {
+    const o = merge([1, 2], { 2: 3 } as any);
+    expect(o).toStrictEqual([1, 2, 3]);
+  });
+
   it('should ignore source if null', () => {
     const a: any = {};
     const b: any = merge(a, undefined as any);
@@ -368,6 +378,26 @@ describe('merge', () => {
     const o: any = merge(a, b, { deep: true, mergeArrays: 'unique' });
     expect(o).not.toStrictEqual(b);
     expect(o.foo).toEqual([1, 2, 3, { a: 1 }]);
+  });
+
+  it('should copy an array element of a multi-source list onto an array target', () => {
+    // `[1, 2]` and `[3, 4]` are two sequential sources here (multi-source
+    // semantics), each of which is itself an array value to copy in full.
+    const target: any = [];
+    const o: any = merge(target, [
+      [1, 2],
+      [3, 4],
+    ]);
+    expect(o).toBe(target);
+    expect(o).toStrictEqual([3, 4]);
+  });
+
+  it('should deep clone an array-valued source within a multi-source list', () => {
+    const target: any = [];
+    const inner = [{ a: 1 }];
+    const o: any = merge(target, [inner], { deep: true });
+    expect(o).toStrictEqual(inner);
+    expect(o[0]).not.toBe(inner[0]);
   });
 
   it('should apply filter on target object', () => {

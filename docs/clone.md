@@ -79,3 +79,18 @@ const original = {
 const copy = clone(original, { copyDescriptors: true });
 // copy now has the 'id' getter.
 ```
+
+### Cloning Top-Level Arrays
+
+`obj` may be an array itself, not just a plain object — `clone`/`deepClone` create a fresh
+array in that case and copy elements (and any extra non-index properties or symbol keys set on
+the array) into it, applying the same deep-clone rules as a nested array would get.
+
+```typescript
+const original = [1, 2, { nested: true }];
+const copy = clone(original);
+copy[2].nested = false;
+original[2].nested; // true — unaffected
+```
+
+See [merge's Array handling](api.md#array-handling) for the full rules.

@@ -1,7 +1,7 @@
 {
   "name": "@jsopen/objects",
   "description": "Helper utilities for working with JavaScript objects and arrays",
-  "version": "2.3.1",
+  "version": "2.3.3",
   "author": "Panates",
   "license": "MIT",
   "private": true,
@@ -46,7 +46,8 @@
     "precitest": "rimraf coverage",
     "citest": "c8 mocha",
     "qc": "npm run lint && npm run check",
-    "version": "auto-changelog -p --starting-version v4.0.0 && git add CHANGELOG.md"
+    "version": "auto-changelog -p --starting-version v4.0.0 && git add CHANGELOG.md",
+    "graph": "graphify update ."
   },
   "type": "module",
   "module": "./index.js",

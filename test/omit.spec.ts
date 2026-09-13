@@ -14,4 +14,12 @@ describe('omit', () => {
       c: 3,
     });
   });
+
+  it('should return a new array when given a top-level array', () => {
+    const a = [1, 2, 3];
+    const x: any = omit(a, []);
+    expect(Array.isArray(x)).toBeTruthy();
+    expect(x).toStrictEqual(a);
+    expect(x).not.toBe(a);
+  });
 });

@@ -38,4 +38,11 @@ describe('omitNullish', () => {
       b: [{ a: 1 }],
     });
   });
+
+  it('should omit nullish fields from objects within a top-level array', () => {
+    const a: any = [{ a: 1, b: null, c: undefined }, { d: 2 }];
+    const x = omitNullish(a, true);
+    expect(Array.isArray(x)).toBeTruthy();
+    expect(x).toStrictEqual([{ a: 1 }, { d: 2 }]);
+  });
 });
