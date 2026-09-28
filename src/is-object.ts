@@ -34,7 +34,7 @@ export function isObject(v: any): boolean {
  * isPlainObject(new (class {})());     // false
  * isPlainObject([]);                   // false
  */
-export function isPlainObject(obj: any): boolean {
+export function isPlainObject(obj: any): obj is Record<string, any> {
   if (
     obj &&
     typeof obj === 'object' &&
